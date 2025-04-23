@@ -10,6 +10,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarProvider,
 } from "@/components/ui/sidebar";
 
 const navigationItems = [
@@ -21,8 +22,8 @@ const navigationItems = [
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="min-h-screen bg-slate-900">
-      <div className="flex min-h-screen">
+    <SidebarProvider>
+      <div className="min-h-screen bg-slate-900 flex w-full">
         <Sidebar>
           <SidebarContent>
             <SidebarGroup>
@@ -46,7 +47,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         </Sidebar>
         <main className="flex-1 p-8">{children}</main>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
