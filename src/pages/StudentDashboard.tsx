@@ -11,6 +11,34 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import AuthGuard from '../components/Auth/AuthGuard';
 
+// Define mock assignment data to replace the undefined STUDENT_DATA
+const mockAssignments = [
+  {
+    title: "Math Homework: Algebra",
+    subject: "Mathematics",
+    due: "Tomorrow",
+    status: "pending"
+  },
+  {
+    title: "History Essay",
+    subject: "History",
+    due: "April 30",
+    status: "pending"
+  },
+  {
+    title: "Science Lab Report",
+    subject: "Science",
+    due: "May 2",
+    status: "completed"
+  },
+  {
+    title: "Literature Review",
+    subject: "English",
+    due: "April 28",
+    status: "completed"
+  }
+];
+
 const StudentDashboard = () => {
   const [goals, setGoals] = useState<any[]>([]);
   const [newGoal, setNewGoal] = useState({ title: '', description: '', subject: '' });
@@ -140,12 +168,11 @@ const StudentDashboard = () => {
                             <h3 className="font-medium">{goal.title}</h3>
                             <p className="text-sm text-slate-400">{goal.subject}</p>
                           </div>
-                          <span className="text-lg font-bold">{goal.progress}%</span>
+                          <span className="text-lg font-bold">{goal.progress || 0}%</span>
                         </div>
                         <Progress 
-                          value={goal.progress} 
+                          value={goal.progress || 0} 
                           className="h-2 bg-slate-700"
-                          indicatorClassName="bg-white" 
                         />
                         {goal.description && (
                           <p className="mt-2 text-sm text-slate-400">{goal.description}</p>
@@ -169,7 +196,7 @@ const StudentDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {STUDENT_DATA.assignments.map((assignment, index) => (
+                    {mockAssignments.map((assignment, index) => (
                       <div key={index} className={`p-3 rounded-md border ${
                         assignment.status === 'completed' 
                           ? 'border-green-500/30 bg-green-500/10' 
