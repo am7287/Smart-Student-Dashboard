@@ -1,8 +1,8 @@
+
 import React from 'react';
 import MainLayout from '../components/MainLayout';
 import DashboardHeader from '../components/Dashboard/DashboardHeader';
 import StudentDetailsCard from '../components/StudentDetailsCard';
-import { GoalsSection } from '../components/Goals/GoalsSection';
 import AuthGuard from '../components/Auth/AuthGuard';
 
 const mockStudents = [
@@ -10,9 +10,9 @@ const mockStudents = [
     id: 1,
     name: "Alice Johnson",
     subjects: [
-      { name: "Mathematics", progress: 78 },
-      { name: "Physics", progress: 65 },
-      { name: "Chemistry", progress: 92 }
+      { name: "Mathematics", progress: 78, score: 82, grade: "B+" },
+      { name: "Physics", progress: 65, score: 70, grade: "B-" },
+      { name: "Chemistry", progress: 92, score: 94, grade: "A" }
     ],
     assignments: [
       {
@@ -33,9 +33,9 @@ const mockStudents = [
     id: 2,
     name: "Bob Smith",
     subjects: [
-      { name: "Mathematics", progress: 85 },
-      { name: "Physics", progress: 72 },
-      { name: "Chemistry", progress: 88 }
+      { name: "Mathematics", progress: 85, score: 88, grade: "B+" },
+      { name: "Physics", progress: 72, score: 75, grade: "C+" },
+      { name: "Chemistry", progress: 88, score: 90, grade: "A-" }
     ],
     assignments: [
       {
@@ -56,15 +56,78 @@ const mockStudents = [
     id: 3,
     name: "Carol White",
     subjects: [
-      { name: "Mathematics", progress: 92 },
-      { name: "Physics", progress: 88 },
-      { name: "Chemistry", progress: 95 }
+      { name: "Mathematics", progress: 92, score: 95, grade: "A" },
+      { name: "Physics", progress: 88, score: 89, grade: "B+" },
+      { name: "Chemistry", progress: 95, score: 96, grade: "A+" }
     ],
     assignments: [
       {
         title: "Physics Problem Set",
         subject: "Physics",
         due: "Wednesday",
+        status: "pending"
+      }
+    ]
+  },
+  {
+    id: 4,
+    name: "David Lee",
+    subjects: [
+      { name: "Mathematics", progress: 68, score: 72, grade: "C+" },
+      { name: "Physics", progress: 75, score: 78, grade: "C+" },
+      { name: "Chemistry", progress: 83, score: 86, grade: "B" }
+    ],
+    assignments: [
+      {
+        title: "Chemistry Lab Work",
+        subject: "Chemistry",
+        due: "Friday",
+        status: "pending"
+      },
+      {
+        title: "Math Review",
+        subject: "Mathematics",
+        due: "Thursday",
+        status: "pending"
+      }
+    ]
+  },
+  {
+    id: 5,
+    name: "Eva Martinez",
+    subjects: [
+      { name: "Mathematics", progress: 95, score: 97, grade: "A+" },
+      { name: "Physics", progress: 90, score: 92, grade: "A-" },
+      { name: "Chemistry", progress: 94, score: 95, grade: "A" }
+    ],
+    assignments: [
+      {
+        title: "Advanced Math Problems",
+        subject: "Mathematics",
+        due: "Next Tuesday",
+        status: "completed"
+      }
+    ]
+  },
+  {
+    id: 6,
+    name: "Frank Wilson",
+    subjects: [
+      { name: "Mathematics", progress: 76, score: 79, grade: "C+" },
+      { name: "Physics", progress: 62, score: 65, grade: "D" },
+      { name: "Chemistry", progress: 71, score: 74, grade: "C" }
+    ],
+    assignments: [
+      {
+        title: "Physics Remedial Work",
+        subject: "Physics",
+        due: "Tomorrow",
+        status: "pending"
+      },
+      {
+        title: "Chemistry Study Guide",
+        subject: "Chemistry",
+        due: "Thursday",
         status: "pending"
       }
     ]
@@ -86,8 +149,6 @@ const StudentDashboard = () => {
               <StudentDetailsCard key={student.id} student={student} />
             ))}
           </div>
-
-          <GoalsSection />
         </div>
       </MainLayout>
     </AuthGuard>

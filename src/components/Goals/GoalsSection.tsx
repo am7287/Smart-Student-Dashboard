@@ -1,14 +1,17 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Trash } from "lucide-react";
 
 interface Goal {
+  id?: string;
   title: string;
   description: string;
   subject: string;
@@ -18,6 +21,8 @@ interface Goal {
 export const GoalsSection = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [newGoal, setNewGoal] = useState<Goal>({ title: '', description: '', subject: '' });
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
+  const [progressValue, setProgressValue] = useState(0);
   const { toast } = useToast();
 
   const fetchGoals = async () => {
@@ -75,7 +80,56 @@ export const GoalsSection = () => {
     fetchGoals();
   };
 
-  React.useEffect(() => {
+  const handleDeleteGoal = async (id: string) => {
+    const { error } = await supabase
+      .from('goals')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Error deleting goal",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Goal deleted",
+      description: "The academic goal has been removed",
+    });
+
+    fetchGoals();
+  };
+
+  const handleUpdateProgress = async () => {
+    if (!selectedGoalId) return;
+
+    const { error } = await supabase
+      .from('goals')
+      .update({ progress: progressValue })
+      .eq('id', selectedGoalId);
+
+    if (error) {
+      toast({
+        title: "Error updating progress",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Progress updated",
+      description: "Goal progress has been updated successfully",
+    });
+
+    setSelectedGoalId(null);
+    fetchGoals();
+  };
+
+  useEffect(() => {
     fetchGoals();
   }, []);
 
@@ -134,7 +188,27 @@ export const GoalsSection = () => {
                   <h3 className="font-medium">{goal.title}</h3>
                   <p className="text-sm text-slate-400">{goal.subject}</p>
                 </div>
-                <span className="text-lg font-bold">{goal.progress || 0}%</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg font-bold">{goal.progress || 0}%</span>
+                  <Button 
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedGoalId(goal.id);
+                      setProgressValue(goal.progress || 0);
+                    }}
+                  >
+                    Update
+                  </Button>
+                  <Button 
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                    onClick={() => goal.id && handleDeleteGoal(goal.id)}
+                  >
+                    <Trash size={16} />
+                  </Button>
+                </div>
               </div>
               <Progress 
                 value={goal.progress || 0} 
@@ -151,8 +225,36 @@ export const GoalsSection = () => {
             </div>
           )}
         </div>
+
+        {/* Progress Update Dialog */}
+        <Dialog open={selectedGoalId !== null} onOpenChange={(isOpen) => !isOpen && setSelectedGoalId(null)}>
+          <DialogContent className="bg-slate-800 text-white border-slate-700">
+            <DialogHeader>
+              <DialogTitle>Update Goal Progress</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 pt-4">
+              <div>
+                <label className="text-sm text-slate-400 mb-2 block">Current Progress: {progressValue}%</label>
+                <Slider
+                  value={[progressValue]}
+                  onValueChange={(values) => setProgressValue(values[0])}
+                  max={100}
+                  step={1}
+                  className="py-4"
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setSelectedGoalId(null)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleUpdateProgress}>
+                  Save Progress
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
 };
-

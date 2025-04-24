@@ -11,6 +11,8 @@ interface StudentDetailsCardProps {
     subjects: Array<{
       name: string;
       progress: number;
+      score: number;
+      grade: string;
     }>;
     assignments: Array<{
       title: string;
@@ -39,8 +41,17 @@ const StudentDetailsCard = ({ student }: StudentDetailsCardProps) => {
               <div className="space-y-4">
                 {student.subjects.map((subject, index) => (
                   <div key={index}>
-                    <div className="flex justify-between text-sm mb-2">
+                    <div className="flex justify-between text-sm mb-1">
                       <span>{subject.name}</span>
+                      <div className="flex items-center space-x-3">
+                        <span>Score: {subject.score}</span>
+                        <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">
+                          Grade: {subject.grade}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-slate-400">Progress</span>
                       <span>{subject.progress}%</span>
                     </div>
                     <Progress value={subject.progress} className="h-2 bg-slate-700" />
