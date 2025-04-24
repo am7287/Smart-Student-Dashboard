@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart3, GraduationCap, Users, Settings, Calendar, MessageSquare, User } from 'lucide-react';
+import { BarChart3, GraduationCap, Users, Settings, Calendar, User } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -18,30 +17,25 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const [userRole, setUserRole] = useState<string>('');
   
-  // Define navigation items based on user role
   const teacherNavigation = [
     { title: "Dashboard", icon: Users, url: "/teacher-dashboard" },
     { title: "Analytics", icon: BarChart3, url: "/analytics" },
     { title: "Grades", icon: GraduationCap, url: "/grade-management" },
     { title: "Goals", icon: Settings, url: "/goals" },
     { title: "Calendar", icon: Calendar, url: "/calendar" },
-    { title: "Messages", icon: MessageSquare, url: "/messages" },
   ];
   
   const parentNavigation = [
     { title: "Portal", icon: User, url: "/parent-portal" },
     { title: "Calendar", icon: Calendar, url: "/calendar" },
-    { title: "Messages", icon: MessageSquare, url: "/messages" },
   ];
   
   const studentNavigation = [
     { title: "Dashboard", icon: User, url: "/student-dashboard" },
     { title: "Goals", icon: Settings, url: "/goals" },
     { title: "Calendar", icon: Calendar, url: "/calendar" },
-    { title: "Messages", icon: MessageSquare, url: "/messages" },
   ];
   
-  // Get user role from localStorage
   useEffect(() => {
     const userStr = localStorage.getItem('currentUser');
     if (userStr) {
@@ -54,7 +48,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
   
-  // Select navigation items based on role
   const navigationItems = 
     userRole === 'teacher' ? teacherNavigation : 
     userRole === 'parent' ? parentNavigation :

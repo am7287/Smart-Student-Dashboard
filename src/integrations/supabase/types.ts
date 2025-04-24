@@ -9,7 +9,81 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      calendar_events: {
+        Row: {
+          assigned_by: string | null
+          assigned_to: Json | null
+          created_at: string | null
+          date: string
+          description: string | null
+          id: string
+          title: string
+          type: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          assigned_to?: Json | null
+          created_at?: string | null
+          date: string
+          description?: string | null
+          id?: string
+          title: string
+          type: string
+        }
+        Update: {
+          assigned_by?: string | null
+          assigned_to?: Json | null
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      goals: {
+        Row: {
+          action_steps: Json | null
+          created_at: string | null
+          description: string | null
+          id: string
+          progress: number | null
+          student_id: string
+          subject: string | null
+          target: number | null
+          target_date: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          action_steps?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          progress?: number | null
+          student_id: string
+          subject?: string | null
+          target?: number | null
+          target_date?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          action_steps?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          progress?: number | null
+          student_id?: string
+          subject?: string | null
+          target?: number | null
+          target_date?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
