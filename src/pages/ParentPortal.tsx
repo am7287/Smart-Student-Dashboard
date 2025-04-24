@@ -2,28 +2,107 @@
 import React from 'react';
 import MainLayout from '../components/MainLayout';
 import DashboardHeader from '../components/Dashboard/DashboardHeader';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import StudentCard from '../components/StudentCard';
+import StudentProgressCard from '../components/Parent/StudentProgressCard';
 import AuthGuard from '../components/Auth/AuthGuard';
 
-// Mock data for child's performance
-const CHILD_DATA = {
-  name: "Emma Smith",
-  grade: "10th Grade",
-  subjects: [
-    { name: "Mathematics", grade: "B+", progress: 85 },
-    { name: "Science", grade: "A-", progress: 92 },
-    { name: "English", grade: "B", progress: 83 },
-    { name: "History", grade: "C+", progress: 78 },
-  ],
-  attendance: "92%",
-  upcoming: [
-    { title: "Math Quiz", date: "April 15" },
-    { title: "Science Project", date: "April 18" },
-    { title: "English Essay", date: "April 25" },
-  ]
-};
+const MOCK_STUDENTS = [
+  {
+    id: 1,
+    name: "Alice Johnson",
+    subjects: [
+      { name: "Mathematics", progress: 78, score: 82, grade: "B+" },
+      { name: "Physics", progress: 65, score: 70, grade: "B-" },
+      { name: "Chemistry", progress: 92, score: 94, grade: "A" }
+    ],
+    weeklyReport: {
+      attendance: "95%",
+      completedAssignments: 8,
+      totalAssignments: 10,
+      improvements: ["Active class participation", "Excellent homework completion"],
+      areasOfFocus: ["Need more practice in Physics"]
+    }
+  },
+  {
+    id: 2,
+    name: "Bob Smith",
+    subjects: [
+      { name: "Mathematics", progress: 85, score: 88, grade: "B+" },
+      { name: "Physics", progress: 72, score: 75, grade: "C+" },
+      { name: "Chemistry", progress: 88, score: 90, grade: "A-" }
+    ],
+    weeklyReport: {
+      attendance: "88%",
+      completedAssignments: 7,
+      totalAssignments: 10,
+      improvements: ["Improved test scores", "Better class engagement"],
+      areasOfFocus: ["Regular attendance needed", "More focus on Physics"]
+    }
+  },
+  {
+    id: 3,
+    name: "Carol White",
+    subjects: [
+      { name: "Mathematics", progress: 92, score: 95, grade: "A" },
+      { name: "Physics", progress: 88, score: 89, grade: "B+" },
+      { name: "Chemistry", progress: 95, score: 96, grade: "A+" }
+    ],
+    weeklyReport: {
+      attendance: "98%",
+      completedAssignments: 10,
+      totalAssignments: 10,
+      improvements: ["Consistent high performance", "Great problem-solving skills"],
+      areasOfFocus: ["Challenge with advanced topics"]
+    }
+  },
+  {
+    id: 4,
+    name: "David Brown",
+    subjects: [
+      { name: "Mathematics", progress: 68, score: 72, grade: "C+" },
+      { name: "Physics", progress: 75, score: 78, grade: "C+" },
+      { name: "Chemistry", progress: 83, score: 86, grade: "B" }
+    ],
+    weeklyReport: {
+      attendance: "92%",
+      completedAssignments: 6,
+      totalAssignments: 10,
+      improvements: ["Better class participation", "Improved homework submission"],
+      areasOfFocus: ["Need to improve Math scores", "More practice needed"]
+    }
+  },
+  {
+    id: 5,
+    name: "Emma Davis",
+    subjects: [
+      { name: "Mathematics", progress: 95, score: 97, grade: "A+" },
+      { name: "Physics", progress: 90, score: 92, grade: "A-" },
+      { name: "Chemistry", progress: 94, score: 95, grade: "A" }
+    ],
+    weeklyReport: {
+      attendance: "96%",
+      completedAssignments: 9,
+      totalAssignments: 10,
+      improvements: ["Outstanding performance", "Great analytical skills"],
+      areasOfFocus: ["Can attempt more challenging problems"]
+    }
+  },
+  {
+    id: 6,
+    name: "Frank Miller",
+    subjects: [
+      { name: "Mathematics", progress: 76, score: 79, grade: "C+" },
+      { name: "Physics", progress: 62, score: 65, grade: "D" },
+      { name: "Chemistry", progress: 71, score: 74, grade: "C" }
+    ],
+    weeklyReport: {
+      attendance: "85%",
+      completedAssignments: 5,
+      totalAssignments: 10,
+      improvements: ["Showing interest in practical work"],
+      areasOfFocus: ["Regular attendance needed", "More focus on assignments", "Extra support in Physics"]
+    }
+  }
+];
 
 const ParentPortal = () => {
   return (
@@ -32,82 +111,13 @@ const ParentPortal = () => {
         <div className="space-y-8">
           <DashboardHeader 
             title="Parent Portal" 
-            subtitle={`Monitor ${CHILD_DATA.name}'s academic progress`}
+            subtitle="Monitor your children's academic progress"
           />
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <Card className="bg-slate-800 text-white border-slate-700">
-                <CardHeader>
-                  <CardTitle>Subject Performance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-5">
-                    {CHILD_DATA.subjects.map((subject, index) => (
-                      <div key={index}>
-                        <div className="flex justify-between items-center mb-2">
-                          <div>
-                            <h3 className="font-medium">{subject.name}</h3>
-                            <p className="text-sm text-slate-400">Current Grade: {subject.grade}</p>
-                          </div>
-                          <span className="text-lg font-bold">{subject.progress}%</span>
-                        </div>
-                        <Progress value={subject.progress} className="h-2" />
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div>
-              <Card className="bg-slate-800 text-white border-slate-700 mb-6">
-                <CardHeader>
-                  <CardTitle>Attendance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col items-center">
-                    <div className="relative w-32 h-32 mb-4">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-3xl font-bold">{CHILD_DATA.attendance}</span>
-                      </div>
-                      <svg className="w-full h-full" viewBox="0 0 36 36">
-                        <circle cx="18" cy="18" r="16" fill="none" stroke="#334155" strokeWidth="2"></circle>
-                        <circle 
-                          cx="18" 
-                          cy="18" 
-                          r="16" 
-                          fill="none" 
-                          stroke="#7C3AED" 
-                          strokeWidth="2" 
-                          strokeDasharray={`${92} ${100 - 92}`}
-                          strokeDashoffset="25"
-                        ></circle>
-                      </svg>
-                    </div>
-                    <p className="text-center text-slate-400 text-sm">
-                      Attendance rate for current semester
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-slate-800 text-white border-slate-700">
-                <CardHeader>
-                  <CardTitle>Upcoming Assignments</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    {CHILD_DATA.upcoming.map((item, index) => (
-                      <li key={index} className="flex justify-between p-2 border-b border-slate-700 last:border-0">
-                        <span>{item.title}</span>
-                        <span className="text-slate-400">{item.date}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
+          <div className="grid grid-cols-1 gap-6">
+            {MOCK_STUDENTS.map((student) => (
+              <StudentProgressCard key={student.id} student={student} />
+            ))}
           </div>
         </div>
       </MainLayout>

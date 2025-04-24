@@ -27,7 +27,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   
   const parentNavigation = [
     { title: "Portal", icon: User, url: "/parent-portal" },
-    { title: "Calendar", icon: Calendar, url: "/calendar" },
   ];
   
   const studentNavigation = [
