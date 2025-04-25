@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -129,6 +128,29 @@ export const GoalsSection = () => {
     fetchGoals();
   };
 
+  const handleManualProgressUpdate = async (goalId: string, newProgress: number) => {
+    const { error } = await supabase
+      .from('goals')
+      .update({ progress: newProgress })
+      .eq('id', goalId);
+
+    if (error) {
+      toast({
+        title: "Error updating progress",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Progress updated",
+      description: "Goal progress has been manually updated",
+    });
+
+    fetchGoals();
+  };
+
   useEffect(() => {
     fetchGoals();
   }, []);
@@ -181,25 +203,25 @@ export const GoalsSection = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {goals.map((goal, index) => (
-            <div key={index} className="p-4 border border-slate-700 rounded-lg">
+          {goals.map((goal) => (
+            <div key={goal.id} className="p-4 border border-slate-700 rounded-lg">
               <div className="flex justify-between items-center mb-2">
                 <div>
                   <h3 className="font-medium">{goal.title}</h3>
                   <p className="text-sm text-slate-400">{goal.subject}</p>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-lg font-bold">{goal.progress || 0}%</span>
-                  <Button 
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedGoalId(goal.id);
-                      setProgressValue(goal.progress || 0);
-                    }}
-                  >
-                    Update
-                  </Button>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center">
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={goal.progress || 0}
+                      onChange={(e) => handleManualProgressUpdate(goal.id!, parseInt(e.target.value) || 0)}
+                      className="w-20 bg-slate-900 border-slate-700 text-center"
+                    />
+                    <span className="ml-2 text-lg font-bold">%</span>
+                  </div>
                   <Button 
                     variant="ghost"
                     size="sm"

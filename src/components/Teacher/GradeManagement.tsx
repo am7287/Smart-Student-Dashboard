@@ -1,42 +1,74 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Users } from "lucide-react";
+import { Calendar } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-// Mock student assignment data
-const MOCK_ASSIGNMENTS = [
-  { id: 1, name: "Alice Johnson", assignment: "Math Quiz 1", grade: 85, attendance: 95 },
-  { id: 2, name: "Bob Smith", assignment: "Math Quiz 1", grade: 72, attendance: 88 },
-  { id: 3, name: "Carol White", assignment: "Math Quiz 1", grade: 95, attendance: 98 },
-  { id: 4, name: "David Brown", assignment: "Math Quiz 1", grade: 88, attendance: 92 },
-  { id: 5, name: "Emma Davis", assignment: "Math Quiz 1", grade: 65, attendance: 78 },
-  { id: 6, name: "Frank Miller", assignment: "Math Quiz 1", grade: 78, attendance: 85 },
-];
+// Generate random grades for completed assignments
+const generateRandomGrades = () => {
+  const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  return weekDays.map(day => ({
+    id: crypto.randomUUID(),
+    name: "Alice Johnson",
+    assignment: `${day}'s Assignment`,
+    grade: Math.floor(Math.random() * (95 - 65) + 65),
+    attendance: Math.floor(Math.random() * (100 - 75) + 75),
+  }));
+};
 
 const GradeManagement = () => {
-  const [grades, setGrades] = useState(MOCK_ASSIGNMENTS);
+  const [grades, setGrades] = useState(generateRandomGrades());
   const { toast } = useToast();
 
-  const handleGradeChange = (id: number, newGrade: number) => {
+  const handleGradeChange = (id: string, newGrade: number) => {
     setGrades(grades.map(grade => 
-      grade.id === id ? { ...grade, grade: newGrade } : grade
+      grade.id === id ? { ...grade, grade: Math.min(100, Math.max(0, newGrade)) } : grade
     ));
   };
 
-  const handleAttendanceChange = (id: number, newAttendance: number) => {
+  const handleAssignmentChange = (id: string, newAssignment: string) => {
+    setGrades(grades.map(grade => 
+      grade.id === id ? { ...grade, assignment: newAssignment } : grade
+    ));
+  };
+
+  const handleAttendanceChange = (id: string, newAttendance: number) => {
     setGrades(grades.map(grade =>
       grade.id === id ? { ...grade, attendance: Math.min(100, Math.max(0, newAttendance)) } : grade
     ));
   };
 
-  const handleSave = () => {
-    toast({
-      title: "Updates saved",
-      description: "All student grades and attendance have been updated.",
-    });
+  const handleSave = async () => {
+    try {
+      const { error } = await supabase
+        .from('student_grades')
+        .upsert(
+          grades.map(grade => ({
+            student_id: '1', // This would normally come from your student data
+            student_name: grade.name,
+            assignment_name: grade.assignment,
+            grade: grade.grade,
+            attendance: grade.attendance,
+            date: new Date().toISOString(),
+          }))
+        );
+
+      if (error) throw error;
+
+      toast({
+        title: "Updates saved",
+        description: "All student grades and attendance have been updated.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error saving updates",
+        description: "There was a problem saving the changes.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -46,11 +78,7 @@ const GradeManagement = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <div className="space-x-2">
-              <span className="text-lg font-medium">Math Quiz 1</span>
-              <span className="text-sm text-slate-400">Due: April 15, 2025</span>
-            </div>
+          <div className="flex justify-end">
             <Button 
               onClick={handleSave}
               className="bg-purple-600 hover:bg-purple-700"
@@ -72,14 +100,19 @@ const GradeManagement = () => {
                       <span>Attendance (%)</span>
                     </div>
                   </th>
-                  <th className="text-left py-3 text-slate-400">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {grades.map((item) => (
                   <tr key={item.id} className="border-b border-slate-700">
                     <td className="py-3">{item.name}</td>
-                    <td className="py-3">{item.assignment}</td>
+                    <td className="py-3 w-64">
+                      <Input 
+                        value={item.assignment}
+                        onChange={(e) => handleAssignmentChange(item.id, e.target.value)}
+                        className="bg-slate-900 border-slate-700"
+                      />
+                    </td>
                     <td className="py-3 w-32">
                       <div className="flex items-center">
                         <Input 
@@ -106,16 +139,6 @@ const GradeManagement = () => {
                         <span className="ml-2 text-slate-400">%</span>
                       </div>
                     </td>
-                    <td className="py-3">
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm" className="border-slate-700 hover:bg-slate-700 text-slate-300">
-                          Comment
-                        </Button>
-                        <Button variant="outline" size="sm" className="border-slate-700 hover:bg-slate-700 text-slate-300">
-                          History
-                        </Button>
-                      </div>
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -128,4 +151,3 @@ const GradeManagement = () => {
 };
 
 export default GradeManagement;
-
