@@ -24,9 +24,9 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ title, subtitle }) =>
         <p className="text-slate-400">{subtitle}</p>
       </div>
       <Button 
-        variant="outline" 
+        variant="default" 
         onClick={handleLogout}
-        className="border-slate-700 text-slate-300 hover:bg-slate-700"
+        className="bg-white text-black hover:bg-gray-200"
       >
         <LogOut className="h-4 w-4 mr-2" />
         Sign out

@@ -126,7 +126,10 @@ const CalendarView = () => {
               </h3>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-700">
+                  <Button 
+                    variant="default" 
+                    className="bg-white text-black hover:bg-gray-200"
+                  >
                     Add New Event
                   </Button>
                 </DialogTrigger>
