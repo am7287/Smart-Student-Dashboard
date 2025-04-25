@@ -1,4 +1,3 @@
-
 import React from 'react';
 import MainLayout from '../components/MainLayout';
 import DashboardHeader from '../components/Dashboard/DashboardHeader';
@@ -43,12 +42,6 @@ const mockStudents = [
         subject: "Chemistry",
         due: "Friday",
         status: "pending"
-      },
-      {
-        title: "Math Assignment",
-        subject: "Mathematics",
-        due: "Next Monday",
-        status: "completed"
       }
     ]
   },
@@ -71,7 +64,7 @@ const mockStudents = [
   },
   {
     id: 4,
-    name: "David Lee",
+    name: "David Brown",
     subjects: [
       { name: "Mathematics", progress: 68, score: 72, grade: "C+" },
       { name: "Physics", progress: 75, score: 78, grade: "C+" },
@@ -83,18 +76,12 @@ const mockStudents = [
         subject: "Chemistry",
         due: "Friday",
         status: "pending"
-      },
-      {
-        title: "Math Review",
-        subject: "Mathematics",
-        due: "Thursday",
-        status: "pending"
       }
     ]
   },
   {
     id: 5,
-    name: "Eva Martinez",
+    name: "Emma Davis",
     subjects: [
       { name: "Mathematics", progress: 95, score: 97, grade: "A+" },
       { name: "Physics", progress: 90, score: 92, grade: "A-" },
@@ -111,7 +98,7 @@ const mockStudents = [
   },
   {
     id: 6,
-    name: "Frank Wilson",
+    name: "Frank Miller",
     subjects: [
       { name: "Mathematics", progress: 76, score: 79, grade: "C+" },
       { name: "Physics", progress: 62, score: 65, grade: "D" },
@@ -122,12 +109,6 @@ const mockStudents = [
         title: "Physics Remedial Work",
         subject: "Physics",
         due: "Tomorrow",
-        status: "pending"
-      },
-      {
-        title: "Chemistry Study Guide",
-        subject: "Chemistry",
-        due: "Thursday",
         status: "pending"
       }
     ]

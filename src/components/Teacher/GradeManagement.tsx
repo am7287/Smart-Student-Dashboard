@@ -2,18 +2,18 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { Calendar, Users } from "lucide-react";
 
 // Mock student assignment data
 const MOCK_ASSIGNMENTS = [
-  { id: 1, name: "Alice Johnson", assignment: "Math Quiz 1", grade: 85 },
-  { id: 2, name: "Bob Smith", assignment: "Math Quiz 1", grade: 72 },
-  { id: 3, name: "Carol White", assignment: "Math Quiz 1", grade: 95 },
-  { id: 4, name: "David Brown", assignment: "Math Quiz 1", grade: 88 },
-  { id: 5, name: "Emma Davis", assignment: "Math Quiz 1", grade: 65 },
-  { id: 6, name: "Frank Miller", assignment: "Math Quiz 1", grade: 78 },
+  { id: 1, name: "Alice Johnson", assignment: "Math Quiz 1", grade: 85, attendance: 95 },
+  { id: 2, name: "Bob Smith", assignment: "Math Quiz 1", grade: 72, attendance: 88 },
+  { id: 3, name: "Carol White", assignment: "Math Quiz 1", grade: 95, attendance: 98 },
+  { id: 4, name: "David Brown", assignment: "Math Quiz 1", grade: 88, attendance: 92 },
+  { id: 5, name: "Emma Davis", assignment: "Math Quiz 1", grade: 65, attendance: 78 },
+  { id: 6, name: "Frank Miller", assignment: "Math Quiz 1", grade: 78, attendance: 85 },
 ];
 
 const GradeManagement = () => {
@@ -26,17 +26,23 @@ const GradeManagement = () => {
     ));
   };
 
+  const handleAttendanceChange = (id: number, newAttendance: number) => {
+    setGrades(grades.map(grade =>
+      grade.id === id ? { ...grade, attendance: Math.min(100, Math.max(0, newAttendance)) } : grade
+    ));
+  };
+
   const handleSave = () => {
     toast({
-      title: "Grades updated",
-      description: "All student grades have been successfully updated.",
+      title: "Updates saved",
+      description: "All student grades and attendance have been updated.",
     });
   };
 
   return (
     <Card className="bg-slate-800 text-white border-slate-700">
       <CardHeader>
-        <CardTitle className="text-xl">Grade Management</CardTitle>
+        <CardTitle className="text-xl">Grade & Attendance Management</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
@@ -60,6 +66,12 @@ const GradeManagement = () => {
                   <th className="text-left py-3 text-slate-400">Student</th>
                   <th className="text-left py-3 text-slate-400">Assignment</th>
                   <th className="text-left py-3 text-slate-400">Grade</th>
+                  <th className="text-left py-3 text-slate-400">
+                    <div className="flex items-center gap-2">
+                      <Calendar size={16} />
+                      <span>Attendance (%)</span>
+                    </div>
+                  </th>
                   <th className="text-left py-3 text-slate-400">Actions</th>
                 </tr>
               </thead>
@@ -79,6 +91,19 @@ const GradeManagement = () => {
                           className="w-20 bg-slate-900 border-slate-700 text-center"
                         />
                         <span className="ml-2 text-slate-400">/100</span>
+                      </div>
+                    </td>
+                    <td className="py-3 w-32">
+                      <div className="flex items-center">
+                        <Input 
+                          type="number"
+                          min="0"
+                          max="100" 
+                          value={item.attendance}
+                          onChange={(e) => handleAttendanceChange(item.id, parseInt(e.target.value) || 0)}
+                          className="w-20 bg-slate-900 border-slate-700 text-center"
+                        />
+                        <span className="ml-2 text-slate-400">%</span>
                       </div>
                     </td>
                     <td className="py-3">
@@ -103,3 +128,4 @@ const GradeManagement = () => {
 };
 
 export default GradeManagement;
+
