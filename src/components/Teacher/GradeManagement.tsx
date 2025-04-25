@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 
 // Generate random grades for completed assignments
 const generateRandomGrades = () => {
@@ -41,22 +40,10 @@ const GradeManagement = () => {
     ));
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     try {
-      const { error } = await supabase
-        .from('student_grades')
-        .upsert(
-          grades.map(grade => ({
-            student_id: '1', // This would normally come from your student data
-            student_name: grade.name,
-            assignment_name: grade.assignment,
-            grade: grade.grade,
-            attendance: grade.attendance,
-            date: new Date().toISOString(),
-          }))
-        );
-
-      if (error) throw error;
+      // Save to localStorage instead of Supabase
+      localStorage.setItem('student_grades', JSON.stringify(grades));
 
       toast({
         title: "Updates saved",
