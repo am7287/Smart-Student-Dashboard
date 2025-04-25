@@ -6,21 +6,42 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "lucide-react";
 
-// Generate random grades for completed assignments
-const generateRandomGrades = () => {
-  const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-  return weekDays.map(day => ({
+// Generate initial grade data
+const generateInitialGrades = () => {
+  const savedGrades = localStorage.getItem('student_grades');
+  if (savedGrades) {
+    return JSON.parse(savedGrades);
+  }
+  
+  return [{
     id: crypto.randomUUID(),
     name: "Alice Johnson",
-    assignment: `${day}'s Assignment`,
+    assignment: "Initial Assignment",
     grade: Math.floor(Math.random() * (95 - 65) + 65),
     attendance: Math.floor(Math.random() * (100 - 75) + 75),
-  }));
+  }];
 };
 
 const GradeManagement = () => {
-  const [grades, setGrades] = useState(generateRandomGrades());
+  const [grades, setGrades] = useState(generateInitialGrades());
   const { toast } = useToast();
+
+  // Save grades whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('student_grades', JSON.stringify(grades));
+      toast({
+        title: "Changes saved",
+        description: "Grade updates have been saved automatically.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error saving changes",
+        description: "There was a problem saving the updates.",
+        variant: "destructive",
+      });
+    }
+  }, [grades, toast]);
 
   const handleGradeChange = (id: string, newGrade: number) => {
     setGrades(grades.map(grade => 
@@ -40,40 +61,32 @@ const GradeManagement = () => {
     ));
   };
 
-  const handleSave = () => {
-    try {
-      // Save to localStorage instead of Supabase
-      localStorage.setItem('student_grades', JSON.stringify(grades));
-
-      toast({
-        title: "Updates saved",
-        description: "All student grades and attendance have been updated.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error saving updates",
-        description: "There was a problem saving the changes.",
-        variant: "destructive",
-      });
-    }
+  const handleAddNewAssignment = () => {
+    const newGrade = {
+      id: crypto.randomUUID(),
+      name: "Alice Johnson",
+      assignment: "New Assignment",
+      grade: Math.floor(Math.random() * (95 - 65) + 65),
+      attendance: Math.floor(Math.random() * (100 - 75) + 75),
+    };
+    setGrades([...grades, newGrade]);
   };
 
   return (
     <Card className="bg-slate-800 text-white border-slate-700">
       <CardHeader>
-        <CardTitle className="text-xl">Grade & Attendance Management</CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-xl">Grade & Attendance Management</CardTitle>
+          <Button 
+            onClick={handleAddNewAssignment}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            Add New Assignment
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          <div className="flex justify-end">
-            <Button 
-              onClick={handleSave}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              Save All Changes
-            </Button>
-          </div>
-          
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
