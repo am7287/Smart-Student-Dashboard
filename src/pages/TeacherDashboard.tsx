@@ -11,13 +11,13 @@ const TeacherDashboard = () => {
       <MainLayout>
         <div className="space-y-8">
           <DashboardHeader 
-            title="Teacher Dashboard" 
+            title="Smart Student Dashboard" 
             subtitle="Monitor student performance and progress"
           />
           
           <div className="mb-6">
             <h2 className="text-2xl font-semibold text-white mb-4">Students Overview</h2>
-            <p className="text-slate-400">View and manage your students' information, academic performance, and attendance records.</p>
+            <p className="text-slate-400">View student information, academic performance, and personalized improvement suggestions.</p>
           </div>
           
           <StudentList />

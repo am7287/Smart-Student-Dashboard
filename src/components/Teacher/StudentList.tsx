@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Book, CalendarDays, Award, BarChart3 } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 
 // Mock student data with expanded information
 const MOCK_STUDENTS = [
@@ -14,10 +14,7 @@ const MOCK_STUDENTS = [
     grade: "A-",
     attendance: "95%", 
     risk: "low",
-    recentAssignments: 5,
-    completedAssignments: 4,
-    lastActive: "2 hours ago",
-    totalCourses: 4
+    suggestion: "Provide more challenging problems to keep her engaged"
   },
   { 
     id: 2, 
@@ -27,10 +24,7 @@ const MOCK_STUDENTS = [
     grade: "B+",
     attendance: "88%", 
     risk: "medium",
-    recentAssignments: 4,
-    completedAssignments: 3,
-    lastActive: "1 day ago",
-    totalCourses: 3
+    suggestion: "Additional practice with force and motion concepts"
   },
   { 
     id: 3, 
@@ -40,10 +34,7 @@ const MOCK_STUDENTS = [
     grade: "A",
     attendance: "98%", 
     risk: "low",
-    recentAssignments: 6,
-    completedAssignments: 6,
-    lastActive: "3 hours ago",
-    totalCourses: 5
+    suggestion: "Encourage participation in the science fair"
   },
   { 
     id: 4, 
@@ -53,10 +44,7 @@ const MOCK_STUDENTS = [
     grade: "A-",
     attendance: "92%", 
     risk: "low",
-    recentAssignments: 4,
-    completedAssignments: 3,
-    lastActive: "5 hours ago",
-    totalCourses: 4
+    suggestion: "Connect learning to real-world applications"
   },
   { 
     id: 5, 
@@ -66,10 +54,7 @@ const MOCK_STUDENTS = [
     grade: "C",
     attendance: "78%", 
     risk: "high",
-    recentAssignments: 5,
-    completedAssignments: 2,
-    lastActive: "2 days ago", 
-    totalCourses: 3
+    suggestion: "Schedule weekly check-ins and provide study guides"
   },
   { 
     id: 6, 
@@ -79,10 +64,7 @@ const MOCK_STUDENTS = [
     grade: "B",
     attendance: "85%", 
     risk: "medium",
-    recentAssignments: 4,
-    completedAssignments: 2,
-    lastActive: "1 day ago",
-    totalCourses: 4
+    suggestion: "Offer additional reading comprehension exercises"
   },
 ];
 
@@ -137,43 +119,22 @@ const StudentList = () => {
               </div>
 
               <div className="pt-2 border-t border-slate-700">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Book className="h-4 w-4 text-purple-400" />
-                    <div>
-                      <p className="text-xs text-slate-400">Total Courses</p>
-                      <p className="text-sm font-medium">{student.totalCourses}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Award className="h-4 w-4 text-green-400" />
-                    <div>
-                      <p className="text-xs text-slate-400">Completed</p>
-                      <p className="text-sm font-medium">{student.completedAssignments}/{student.recentAssignments}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4 text-blue-400" />
-                    <div>
-                      <p className="text-xs text-slate-400">Last Active</p>
-                      <p className="text-sm font-medium">{student.lastActive}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <BarChart3 className="h-4 w-4 text-amber-400" />
-                    <div>
-                      <p className="text-xs text-slate-400">Performance</p>
-                      <p className="text-sm font-medium">
-                        {student.progress >= 85 ? 'Excellent' : 
-                         student.progress >= 70 ? 'Good' : 
-                         student.progress >= 50 ? 'Average' : 'Needs Help'}
-                      </p>
-                    </div>
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-amber-400" />
+                  <div>
+                    <p className="text-xs text-slate-400">Performance</p>
+                    <p className="text-sm font-medium">
+                      {student.progress >= 85 ? 'Excellent' : 
+                       student.progress >= 70 ? 'Good' : 
+                       student.progress >= 50 ? 'Average' : 'Needs Help'}
+                    </p>
                   </div>
                 </div>
+              </div>
+              
+              <div className="pt-2 border-t border-slate-700">
+                <p className="text-xs text-slate-400 mb-1">Improvement Suggestion:</p>
+                <p className="text-sm">{student.suggestion}</p>
               </div>
             </div>
           </CardContent>

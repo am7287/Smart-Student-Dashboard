@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Plus, Search } from "lucide-react";
+import { Calendar, Plus, Search, Trash2 } from "lucide-react";
 import { 
   Table,
   TableBody,
@@ -54,7 +54,7 @@ const generateInitialGrades = (): GradeEntry[] => {
       id: crypto.randomUUID(),
       studentId: student.id,
       name: student.name,
-      assignment: "Initial Assignment",
+      assignment: "Assignment 1",
       grade: Math.floor(Math.random() * (95 - 65) + 65),
       attendance: Math.floor(Math.random() * (100 - 75) + 75),
     });
@@ -65,7 +65,7 @@ const generateInitialGrades = (): GradeEntry[] => {
 
 const GradeManagement = () => {
   const [grades, setGrades] = useState<GradeEntry[]>(generateInitialGrades());
-  const [assignments, setAssignments] = useState<string[]>(['Initial Assignment']);
+  const [assignments, setAssignments] = useState<string[]>(['Assignment 1']);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAssignment, setFilterAssignment] = useState('');
   const { toast } = useToast();
@@ -106,7 +106,8 @@ const GradeManagement = () => {
   };
 
   const handleAddNewAssignment = () => {
-    const newAssignmentName = `Assignment ${assignments.length + 1}`;
+    const assignmentNumber = assignments.length + 1;
+    const newAssignmentName = `Assignment ${assignmentNumber}`;
     setAssignments([...assignments, newAssignmentName]);
     
     // Create new grade entries for all students for this assignment
@@ -124,6 +125,24 @@ const GradeManagement = () => {
     toast({
       title: "New assignment added",
       description: `${newAssignmentName} has been created for all students.`,
+    });
+  };
+
+  const handleDeleteAssignment = (assignmentName: string) => {
+    // Remove the assignment from the assignments list
+    setAssignments(assignments.filter(a => a !== assignmentName));
+    
+    // Remove all grade entries for this assignment
+    setGrades(grades.filter(g => g.assignment !== assignmentName));
+    
+    // Update filter if the deleted assignment was selected
+    if (filterAssignment === assignmentName) {
+      setFilterAssignment('');
+    }
+    
+    toast({
+      title: "Assignment deleted",
+      description: `${assignmentName} has been removed from all students.`,
     });
   };
 
@@ -192,6 +211,7 @@ const GradeManagement = () => {
                       <span>Attendance (%)</span>
                     </div>
                   </TableHead>
+                  <TableHead className="text-slate-400 w-24 text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -232,11 +252,23 @@ const GradeManagement = () => {
                           <span className="ml-2 text-slate-400">%</span>
                         </div>
                       </TableCell>
+                      <TableCell className="py-3 text-right">
+                        {uniqueAssignments.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteAssignment(item.assignment)}
+                            className="text-red-400 hover:text-red-500 hover:bg-red-400/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-6 text-slate-400">
+                    <TableCell colSpan={5} className="text-center py-6 text-slate-400">
                       No results found. Try adjusting your search or filters.
                     </TableCell>
                   </TableRow>
