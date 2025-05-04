@@ -20,7 +20,12 @@ const MOCK_STUDENTS = [
       totalAssignments: 10,
       improvements: ["Active class participation", "Excellent homework completion"],
       areasOfFocus: ["Need more practice in Physics"]
-    }
+    },
+    upcomingAssignments: [
+      { title: "Math Assignment #12", subject: "Mathematics", due: "Tomorrow", status: "pending" },
+      { title: "Physics Lab Report", subject: "Physics", due: "Next Week", status: "pending" },
+      { title: "Chemistry Quiz Prep", subject: "Chemistry", due: "Friday", status: "pending" }
+    ]
   },
   {
     id: 2,
@@ -36,7 +41,11 @@ const MOCK_STUDENTS = [
       totalAssignments: 10,
       improvements: ["Improved test scores", "Better class engagement"],
       areasOfFocus: ["Regular attendance needed", "More focus on Physics"]
-    }
+    },
+    upcomingAssignments: [
+      { title: "Chemistry Project", subject: "Chemistry", due: "Friday", status: "pending" },
+      { title: "Math Problems Set", subject: "Mathematics", due: "Next Monday", status: "pending" }
+    ]
   },
   {
     id: 3,
@@ -52,7 +61,11 @@ const MOCK_STUDENTS = [
       totalAssignments: 10,
       improvements: ["Consistent high performance", "Great problem-solving skills"],
       areasOfFocus: ["Challenge with advanced topics"]
-    }
+    },
+    upcomingAssignments: [
+      { title: "Physics Problem Set", subject: "Physics", due: "Wednesday", status: "pending" },
+      { title: "Advanced Math Challenge", subject: "Mathematics", due: "Next Thursday", status: "pending" }
+    ]
   },
   {
     id: 4,
@@ -68,7 +81,11 @@ const MOCK_STUDENTS = [
       totalAssignments: 10,
       improvements: ["Better class participation", "Improved homework submission"],
       areasOfFocus: ["Need to improve Math scores", "More practice needed"]
-    }
+    },
+    upcomingAssignments: [
+      { title: "Chemistry Lab Work", subject: "Chemistry", due: "Friday", status: "pending" },
+      { title: "Math Remedial Assignment", subject: "Mathematics", due: "Tomorrow", status: "pending" }
+    ]
   },
   {
     id: 5,
@@ -84,7 +101,11 @@ const MOCK_STUDENTS = [
       totalAssignments: 10,
       improvements: ["Outstanding performance", "Great analytical skills"],
       areasOfFocus: ["Can attempt more challenging problems"]
-    }
+    },
+    upcomingAssignments: [
+      { title: "Advanced Physics Research", subject: "Physics", due: "Next Tuesday", status: "pending" },
+      { title: "Math Competition Prep", subject: "Mathematics", due: "Next Friday", status: "pending" }
+    ]
   },
   {
     id: 6,
@@ -100,7 +121,12 @@ const MOCK_STUDENTS = [
       totalAssignments: 10,
       improvements: ["Showing interest in practical work"],
       areasOfFocus: ["Regular attendance needed", "More focus on assignments", "Extra support in Physics"]
-    }
+    },
+    upcomingAssignments: [
+      { title: "Physics Remedial Work", subject: "Physics", due: "Tomorrow", status: "pending" },
+      { title: "Chemistry Make-up Quiz", subject: "Chemistry", due: "Thursday", status: "pending" },
+      { title: "Math Review Session", subject: "Mathematics", due: "Wednesday", status: "pending" }
+    ]
   }
 ];
 

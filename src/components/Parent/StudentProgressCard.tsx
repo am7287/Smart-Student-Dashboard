@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Subject {
   name: string;
@@ -19,24 +20,92 @@ interface WeeklyReport {
   areasOfFocus: string[];
 }
 
+interface Assignment {
+  title: string;
+  subject: string;
+  due: string;
+  status: string;
+}
+
 interface StudentProgressCardProps {
   student: {
     id: number;
     name: string;
     subjects: Subject[];
     weeklyReport: WeeklyReport;
+    upcomingAssignments?: Assignment[];
   };
 }
 
 const StudentProgressCard = ({ student }: StudentProgressCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const handleDownloadReport = () => {
+    // Create report content
+    let reportContent = `Student Progress Report - ${student.name}\n\n`;
+    reportContent += `Generated on: ${new Date().toLocaleDateString()}\n\n`;
+    
+    reportContent += "SUBJECT PERFORMANCE\n";
+    reportContent += "-------------------\n";
+    student.subjects.forEach(subject => {
+      reportContent += `${subject.name} - Score: ${subject.score}, Grade: ${subject.grade}, Progress: ${subject.progress}%\n`;
+    });
+    
+    reportContent += "\nWEEKLY REPORT\n";
+    reportContent += "-------------\n";
+    reportContent += `Attendance: ${student.weeklyReport.attendance}\n`;
+    reportContent += `Assignments Completed: ${student.weeklyReport.completedAssignments}/${student.weeklyReport.totalAssignments}\n`;
+    
+    reportContent += "\nImprovements:\n";
+    student.weeklyReport.improvements.forEach(item => {
+      reportContent += `• ${item}\n`;
+    });
+    
+    reportContent += "\nAreas Needing Focus:\n";
+    student.weeklyReport.areasOfFocus.forEach(item => {
+      reportContent += `• ${item}\n`;
+    });
+
+    if (student.upcomingAssignments && student.upcomingAssignments.length > 0) {
+      reportContent += "\nUPCOMING ASSIGNMENTS\n";
+      reportContent += "-------------------\n";
+      student.upcomingAssignments.forEach(assignment => {
+        reportContent += `• ${assignment.title} (${assignment.subject}) - Due: ${assignment.due}\n`;
+      });
+    }
+    
+    // Create a downloadable file
+    const blob = new Blob([reportContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${student.name.replace(/\s+/g, '_')}_Progress_Report.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Card className="bg-slate-800 text-white border-slate-700 hover:border-purple-500/50 transition-colors cursor-pointer">
-      <CardContent className="p-6" onClick={() => setIsExpanded(!isExpanded)}>
-        <div className="flex items-center justify-between">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between" onClick={() => setIsExpanded(!isExpanded)}>
           <h3 className="text-lg font-medium">{student.name}</h3>
-          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          <div className="flex items-center space-x-3">
+            <Button 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDownloadReport();
+              }}
+              variant="outline"
+              size="sm"
+              className="text-white hover:text-purple-400 border-slate-600 hover:border-purple-500"
+            >
+              <Download size={16} className="mr-2" />
+              Download Report
+            </Button>
+            {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          </div>
         </div>
         
         {isExpanded && (
@@ -101,6 +170,28 @@ const StudentProgressCard = ({ student }: StudentProgressCardProps) => {
                 </div>
               </div>
             </div>
+            
+            {student.upcomingAssignments && student.upcomingAssignments.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium mb-4 text-slate-400">Upcoming Assignments</h4>
+                <div className="space-y-3">
+                  {student.upcomingAssignments.map((assignment, index) => (
+                    <div 
+                      key={index}
+                      className="p-3 rounded-md border border-slate-700 bg-slate-800/50"
+                    >
+                      <h4 className="font-medium">{assignment.title}</h4>
+                      <div className="flex justify-between text-sm mt-1">
+                        <span className="text-slate-400">{assignment.subject}</span>
+                        <span className={assignment.due === 'Tomorrow' ? 'text-red-400' : 'text-slate-400'}>
+                          Due: {assignment.due}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
