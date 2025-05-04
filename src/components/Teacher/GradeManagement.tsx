@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Plus, Search, Trash2 } from "lucide-react";
+import { Calendar, Plus, Search, Trash2, Check, X } from "lucide-react";
 import { 
   Table,
   TableBody,
@@ -13,6 +13,10 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import { format } from "date-fns";
 
 // Define a type for the student
 interface Student {
@@ -28,6 +32,14 @@ interface GradeEntry {
   assignment: string;
   grade: number;
   attendance: number;
+}
+
+// Define a type for daily attendance
+interface AttendanceRecord {
+  id: string;
+  studentId: number;
+  date: string;
+  isPresent: boolean;
 }
 
 // Mock student data based on the StudentList component
@@ -63,11 +75,53 @@ const generateInitialGrades = (): GradeEntry[] => {
   return initialGrades;
 };
 
+// Generate daily attendance records for the current week
+const generateInitialAttendance = (): AttendanceRecord[] => {
+  const savedAttendance = localStorage.getItem('student_attendance');
+  if (savedAttendance) {
+    return JSON.parse(savedAttendance);
+  }
+  
+  const initialAttendance: AttendanceRecord[] = [];
+  const today = new Date();
+  const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  
+  // Generate attendance for Monday through Friday of the current week
+  for (let i = 1; i <= 5; i++) { // 1 = Monday, 5 = Friday
+    const dayDate = new Date();
+    const diff = i - dayOfWeek;
+    dayDate.setDate(today.getDate() + diff);
+    
+    MOCK_STUDENTS.forEach(student => {
+      // For past days, randomly set attendance
+      // For today and future days, default to present
+      const isPastDay = diff < 0;
+      initialAttendance.push({
+        id: crypto.randomUUID(),
+        studentId: student.id,
+        date: format(dayDate, 'yyyy-MM-dd'),
+        isPresent: isPastDay ? Math.random() > 0.2 : true, // 80% chance of being present for past days
+      });
+    });
+  }
+  
+  return initialAttendance;
+};
+
+// Get the name of the day from a date
+const getDayName = (dateStr: string): string => {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const date = new Date(dateStr);
+  return days[date.getDay()];
+};
+
 const GradeManagement = () => {
   const [grades, setGrades] = useState<GradeEntry[]>(generateInitialGrades());
   const [assignments, setAssignments] = useState<string[]>(['Assignment 1']);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAssignment, setFilterAssignment] = useState('');
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>(generateInitialAttendance());
+  const [showAttendance, setShowAttendance] = useState<boolean>(false);
   const { toast } = useToast();
 
   // Save grades whenever they change
@@ -86,6 +140,23 @@ const GradeManagement = () => {
       });
     }
   }, [grades, toast]);
+  
+  // Save attendance whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('student_attendance', JSON.stringify(attendance));
+      toast({
+        title: "Attendance saved",
+        description: "Attendance records have been updated.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error saving attendance",
+        description: "There was a problem saving the attendance records.",
+        variant: "destructive",
+      });
+    }
+  }, [attendance, toast]);
 
   const handleGradeChange = (id: string, newGrade: number) => {
     setGrades(grades.map(grade => 
@@ -102,6 +173,14 @@ const GradeManagement = () => {
   const handleAttendanceChange = (id: string, newAttendance: number) => {
     setGrades(grades.map(grade =>
       grade.id === id ? { ...grade, attendance: Math.min(100, Math.max(0, newAttendance)) } : grade
+    ));
+  };
+  
+  const toggleAttendance = (studentId: number, date: string) => {
+    setAttendance(attendance.map(record => 
+      record.studentId === studentId && record.date === date
+        ? { ...record, isPresent: !record.isPresent }
+        : record
     ));
   };
 
@@ -155,6 +234,10 @@ const GradeManagement = () => {
 
   // Get unique list of assignments for filtering
   const uniqueAssignments = Array.from(new Set(grades.map(grade => grade.assignment)));
+  
+  // Get unique dates from attendance records and sort them
+  const attendanceDates = Array.from(new Set(attendance.map(record => record.date)))
+    .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
 
   return (
     <Card className="bg-slate-800 text-white border-slate-700">
@@ -168,6 +251,14 @@ const GradeManagement = () => {
             >
               <Plus className="mr-2 h-4 w-4" />
               Add New Assignment
+            </Button>
+            <Button 
+              onClick={() => setShowAttendance(!showAttendance)}
+              variant="outline"
+              className="border-slate-600 text-white hover:bg-slate-700"
+            >
+              <Calendar className="mr-2 h-4 w-4" />
+              {showAttendance ? 'Show Grades' : 'Show Attendance'}
             </Button>
           </div>
         </div>
@@ -184,97 +275,176 @@ const GradeManagement = () => {
                 className="pl-8 bg-slate-900 border-slate-700"
               />
             </div>
-            <div className="flex-1 md:max-w-xs">
-              <select
-                value={filterAssignment}
-                onChange={(e) => setFilterAssignment(e.target.value)}
-                className="w-full h-10 px-3 py-2 bg-slate-900 border-slate-700 rounded-md text-white"
-              >
-                <option value="">All Assignments</option>
-                {uniqueAssignments.map((assignment) => (
-                  <option key={assignment} value={assignment}>{assignment}</option>
-                ))}
-              </select>
-            </div>
+            {!showAttendance && (
+              <div className="flex-1 md:max-w-xs">
+                <select
+                  value={filterAssignment}
+                  onChange={(e) => setFilterAssignment(e.target.value)}
+                  className="w-full h-10 px-3 py-2 bg-slate-900 border-slate-700 rounded-md text-white"
+                >
+                  <option value="">All Assignments</option>
+                  {uniqueAssignments.map((assignment) => (
+                    <option key={assignment} value={assignment}>{assignment}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
           
           <div className="overflow-x-auto">
-            <Table className="w-full text-white">
-              <TableHeader className="bg-slate-900">
-                <TableRow className="border-b border-slate-700">
-                  <TableHead className="text-slate-400">Student</TableHead>
-                  <TableHead className="text-slate-400">Assignment</TableHead>
-                  <TableHead className="text-slate-400">Grade</TableHead>
-                  <TableHead className="text-slate-400">
-                    <div className="flex items-center gap-2">
-                      <Calendar size={16} />
-                      <span>Attendance (%)</span>
-                    </div>
-                  </TableHead>
-                  <TableHead className="text-slate-400 w-24 text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredGrades.length > 0 ? (
-                  filteredGrades.map((item) => (
-                    <TableRow key={item.id} className="border-b border-slate-700">
-                      <TableCell className="py-3 font-medium">{item.name}</TableCell>
-                      <TableCell className="py-3 w-64">
-                        <Input 
-                          value={item.assignment}
-                          onChange={(e) => handleAssignmentChange(item.id, e.target.value)}
-                          className="bg-slate-900 border-slate-700"
-                        />
-                      </TableCell>
-                      <TableCell className="py-3 w-32">
-                        <div className="flex items-center">
+            {!showAttendance ? (
+              // Grade management table
+              <Table className="w-full text-white">
+                <TableHeader className="bg-slate-900">
+                  <TableRow className="border-b border-slate-700">
+                    <TableHead className="text-slate-400">Student</TableHead>
+                    <TableHead className="text-slate-400">Assignment</TableHead>
+                    <TableHead className="text-slate-400">Grade</TableHead>
+                    <TableHead className="text-slate-400">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={16} />
+                        <span>Attendance (%)</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-slate-400 w-24 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredGrades.length > 0 ? (
+                    filteredGrades.map((item) => (
+                      <TableRow key={item.id} className="border-b border-slate-700">
+                        <TableCell className="py-3 font-medium">{item.name}</TableCell>
+                        <TableCell className="py-3 w-64">
                           <Input 
-                            type="number"
-                            min="0"
-                            max="100" 
-                            value={item.grade}
-                            onChange={(e) => handleGradeChange(item.id, parseInt(e.target.value) || 0)}
-                            className="w-20 bg-slate-900 border-slate-700 text-center"
+                            value={item.assignment}
+                            onChange={(e) => handleAssignmentChange(item.id, e.target.value)}
+                            className="bg-slate-900 border-slate-700"
                           />
-                          <span className="ml-2 text-slate-400">/100</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-3 w-32">
-                        <div className="flex items-center">
-                          <Input 
-                            type="number"
-                            min="0"
-                            max="100" 
-                            value={item.attendance}
-                            onChange={(e) => handleAttendanceChange(item.id, parseInt(e.target.value) || 0)}
-                            className="w-20 bg-slate-900 border-slate-700 text-center"
-                          />
-                          <span className="ml-2 text-slate-400">%</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-3 text-right">
-                        {uniqueAssignments.length > 1 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteAssignment(item.assignment)}
-                            className="text-red-400 hover:text-red-500 hover:bg-red-400/10"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                        </TableCell>
+                        <TableCell className="py-3 w-32">
+                          <div className="flex items-center">
+                            <Input 
+                              type="number"
+                              min="0"
+                              max="100" 
+                              value={item.grade}
+                              onChange={(e) => handleGradeChange(item.id, parseInt(e.target.value) || 0)}
+                              className="w-20 bg-slate-900 border-slate-700 text-center"
+                            />
+                            <span className="ml-2 text-slate-400">/100</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-3 w-32">
+                          <div className="flex items-center">
+                            <Input 
+                              type="number"
+                              min="0"
+                              max="100" 
+                              value={item.attendance}
+                              onChange={(e) => handleAttendanceChange(item.id, parseInt(e.target.value) || 0)}
+                              className="w-20 bg-slate-900 border-slate-700 text-center"
+                            />
+                            <span className="ml-2 text-slate-400">%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-3 text-right">
+                          {uniqueAssignments.length > 1 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteAssignment(item.assignment)}
+                              className="text-red-400 hover:text-red-500 hover:bg-red-400/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-6 text-slate-400">
+                        No results found. Try adjusting your search or filters.
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-6 text-slate-400">
-                      No results found. Try adjusting your search or filters.
-                    </TableCell>
+                  )}
+                </TableBody>
+              </Table>
+            ) : (
+              // Attendance tracking table
+              <Table className="w-full text-white">
+                <TableHeader className="bg-slate-900">
+                  <TableRow className="border-b border-slate-700">
+                    <TableHead className="text-slate-400">Student</TableHead>
+                    {attendanceDates.map(date => (
+                      <TableHead key={date} className="text-slate-400 text-center">
+                        <div className="flex flex-col items-center">
+                          <span>{getDayName(date)}</span>
+                          <span className="text-xs opacity-75">{format(new Date(date), 'MM/dd/yyyy')}</span>
+                        </div>
+                      </TableHead>
+                    ))}
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {MOCK_STUDENTS.filter(student => 
+                    student.name.toLowerCase().includes(searchTerm.toLowerCase())
+                  ).map(student => (
+                    <TableRow key={student.id} className="border-b border-slate-700">
+                      <TableCell className="py-3 font-medium">{student.name}</TableCell>
+                      {attendanceDates.map(date => {
+                        const record = attendance.find(
+                          r => r.studentId === student.id && r.date === date
+                        );
+                        const isPresent = record ? record.isPresent : false;
+                        
+                        return (
+                          <TableCell key={`${student.id}-${date}`} className="py-3 text-center">
+                            <div className="flex justify-center">
+                              <div className="flex space-x-2">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant={isPresent ? "default" : "outline"}
+                                  className={isPresent 
+                                    ? "bg-green-600 hover:bg-green-700 h-9 px-3" 
+                                    : "border-slate-600 text-white hover:bg-slate-700 h-9 px-3"}
+                                  onClick={() => record && !isPresent && toggleAttendance(student.id, date)}
+                                >
+                                  <Check className="h-4 w-4 mr-1" />
+                                  Present
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant={!isPresent ? "default" : "outline"}
+                                  className={!isPresent 
+                                    ? "bg-red-600 hover:bg-red-700 h-9 px-3" 
+                                    : "border-slate-600 text-white hover:bg-slate-700 h-9 px-3"}
+                                  onClick={() => record && isPresent && toggleAttendance(student.id, date)}
+                                >
+                                  <X className="h-4 w-4 mr-1" />
+                                  Absent
+                                </Button>
+                              </div>
+                            </div>
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                  {MOCK_STUDENTS.filter(student => 
+                    student.name.toLowerCase().includes(searchTerm.toLowerCase())
+                  ).length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={attendanceDates.length + 1} className="text-center py-6 text-slate-400">
+                        No students found. Try adjusting your search.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </div>
         </div>
       </CardContent>
