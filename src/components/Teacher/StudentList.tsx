@@ -2,8 +2,9 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Book, CalendarDays, Award, BarChart3 } from 'lucide-react';
 
-// Mock student data
+// Mock student data with expanded information
 const MOCK_STUDENTS = [
   { 
     id: 1, 
@@ -12,7 +13,11 @@ const MOCK_STUDENTS = [
     progress: 78, 
     grade: "A-",
     attendance: "95%", 
-    risk: "low" 
+    risk: "low",
+    recentAssignments: 5,
+    completedAssignments: 4,
+    lastActive: "2 hours ago",
+    totalCourses: 4
   },
   { 
     id: 2, 
@@ -21,7 +26,11 @@ const MOCK_STUDENTS = [
     progress: 65, 
     grade: "B+",
     attendance: "88%", 
-    risk: "medium" 
+    risk: "medium",
+    recentAssignments: 4,
+    completedAssignments: 3,
+    lastActive: "1 day ago",
+    totalCourses: 3
   },
   { 
     id: 3, 
@@ -30,7 +39,11 @@ const MOCK_STUDENTS = [
     progress: 92, 
     grade: "A",
     attendance: "98%", 
-    risk: "low" 
+    risk: "low",
+    recentAssignments: 6,
+    completedAssignments: 6,
+    lastActive: "3 hours ago",
+    totalCourses: 5
   },
   { 
     id: 4, 
@@ -39,7 +52,11 @@ const MOCK_STUDENTS = [
     progress: 85, 
     grade: "A-",
     attendance: "92%", 
-    risk: "low" 
+    risk: "low",
+    recentAssignments: 4,
+    completedAssignments: 3,
+    lastActive: "5 hours ago",
+    totalCourses: 4
   },
   { 
     id: 5, 
@@ -48,7 +65,11 @@ const MOCK_STUDENTS = [
     progress: 45, 
     grade: "C",
     attendance: "78%", 
-    risk: "high" 
+    risk: "high",
+    recentAssignments: 5,
+    completedAssignments: 2,
+    lastActive: "2 days ago", 
+    totalCourses: 3
   },
   { 
     id: 6, 
@@ -57,7 +78,11 @@ const MOCK_STUDENTS = [
     progress: 72, 
     grade: "B",
     attendance: "85%", 
-    risk: "medium" 
+    risk: "medium",
+    recentAssignments: 4,
+    completedAssignments: 2,
+    lastActive: "1 day ago",
+    totalCourses: 4
   },
 ];
 
@@ -89,7 +114,7 @@ const StudentList = () => {
             
             <div className="mt-4 space-y-4">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Course</span>
+                <span className="text-slate-400">Primary Course</span>
                 <span>{student.course}</span>
               </div>
               
@@ -109,6 +134,46 @@ const StudentList = () => {
               <div className="flex justify-between text-sm">
                 <span className="text-slate-400">Attendance</span>
                 <span>{student.attendance}</span>
+              </div>
+
+              <div className="pt-2 border-t border-slate-700">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Book className="h-4 w-4 text-purple-400" />
+                    <div>
+                      <p className="text-xs text-slate-400">Total Courses</p>
+                      <p className="text-sm font-medium">{student.totalCourses}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Award className="h-4 w-4 text-green-400" />
+                    <div>
+                      <p className="text-xs text-slate-400">Completed</p>
+                      <p className="text-sm font-medium">{student.completedAssignments}/{student.recentAssignments}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-blue-400" />
+                    <div>
+                      <p className="text-xs text-slate-400">Last Active</p>
+                      <p className="text-sm font-medium">{student.lastActive}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4 text-amber-400" />
+                    <div>
+                      <p className="text-xs text-slate-400">Performance</p>
+                      <p className="text-sm font-medium">
+                        {student.progress >= 85 ? 'Excellent' : 
+                         student.progress >= 70 ? 'Good' : 
+                         student.progress >= 50 ? 'Average' : 'Needs Help'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
