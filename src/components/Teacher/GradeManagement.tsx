@@ -14,8 +14,24 @@ import {
   TableRow
 } from "@/components/ui/table";
 
+// Define a type for the student
+interface Student {
+  id: number;
+  name: string;
+}
+
+// Define a type for the grade entry
+interface GradeEntry {
+  id: string;
+  studentId: number;
+  name: string;
+  assignment: string;
+  grade: number;
+  attendance: number;
+}
+
 // Mock student data based on the StudentList component
-const MOCK_STUDENTS = [
+const MOCK_STUDENTS: Student[] = [
   { id: 1, name: "Alice Johnson" },
   { id: 2, name: "Bob Smith" },
   { id: 3, name: "Carol White" },
@@ -25,14 +41,14 @@ const MOCK_STUDENTS = [
 ];
 
 // Generate initial grade data
-const generateInitialGrades = () => {
+const generateInitialGrades = (): GradeEntry[] => {
   const savedGrades = localStorage.getItem('student_grades');
   if (savedGrades) {
     return JSON.parse(savedGrades);
   }
   
   // Create sample grades for all students
-  const initialGrades = [];
+  const initialGrades: GradeEntry[] = [];
   MOCK_STUDENTS.forEach(student => {
     initialGrades.push({
       id: crypto.randomUUID(),
@@ -48,8 +64,8 @@ const generateInitialGrades = () => {
 };
 
 const GradeManagement = () => {
-  const [grades, setGrades] = useState(generateInitialGrades());
-  const [assignments, setAssignments] = useState(['Initial Assignment']);
+  const [grades, setGrades] = useState<GradeEntry[]>(generateInitialGrades());
+  const [assignments, setAssignments] = useState<string[]>(['Initial Assignment']);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAssignment, setFilterAssignment] = useState('');
   const { toast } = useToast();
@@ -94,7 +110,7 @@ const GradeManagement = () => {
     setAssignments([...assignments, newAssignmentName]);
     
     // Create new grade entries for all students for this assignment
-    const newGradeEntries = MOCK_STUDENTS.map(student => ({
+    const newGradeEntries: GradeEntry[] = MOCK_STUDENTS.map(student => ({
       id: crypto.randomUUID(),
       studentId: student.id,
       name: student.name,
@@ -156,7 +172,7 @@ const GradeManagement = () => {
                 className="w-full h-10 px-3 py-2 bg-slate-900 border-slate-700 rounded-md text-white"
               >
                 <option value="">All Assignments</option>
-                {uniqueAssignments.map(assignment => (
+                {uniqueAssignments.map((assignment) => (
                   <option key={assignment} value={assignment}>{assignment}</option>
                 ))}
               </select>
