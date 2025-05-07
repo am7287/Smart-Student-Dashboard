@@ -24,22 +24,72 @@ export const GoalsSection = () => {
   const [progressValue, setProgressValue] = useState(0);
   const { toast } = useToast();
 
-  const fetchGoals = async () => {
-    const { data, error } = await supabase
-      .from('goals')
-      .select('*')
-      .order('created_at', { ascending: false });
+  // Load initial mock goals if none exist
+  const MOCK_GOALS = [
+    {
+      id: '1',
+      title: 'Improve Math Grade',
+      description: 'Aim to score at least 85% in the upcoming math tests',
+      subject: 'Mathematics',
+      progress: 65,
+      student_id: 'demo-student'
+    },
+    {
+      id: '2',
+      title: 'Complete Science Project',
+      description: 'Finish the ecosystem model and prepare presentation',
+      subject: 'Science',
+      progress: 40,
+      student_id: 'demo-student'
+    },
+    {
+      id: '3', 
+      title: 'Read 5 Books This Semester',
+      description: 'Focus on classic literature for English class',
+      subject: 'English',
+      progress: 20,
+      student_id: 'demo-student'
+    }
+  ];
 
-    if (error) {
+  const fetchGoals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('goals')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      // If we have data from Supabase use it
+      if (data && data.length > 0) {
+        setGoals(data);
+      } else {
+        // Otherwise use mock data and try to insert it
+        setGoals(MOCK_GOALS);
+        
+        // Try to insert the mock data
+        const { error: insertError } = await supabase
+          .from('goals')
+          .insert(MOCK_GOALS);
+        
+        if (insertError) {
+          console.error('Could not insert mock goals:', insertError);
+        }
+      }
+    } catch (error: any) {
+      console.error('Error fetching goals:', error);
+      // Use mock data as fallback
+      setGoals(MOCK_GOALS);
+      
       toast({
-        title: "Error fetching goals",
-        description: error.message,
+        title: "Error connecting to database",
+        description: "Using sample goals instead",
         variant: "destructive",
       });
-      return;
     }
-
-    setGoals(data || []);
   };
 
   const handleAddGoal = async () => {
@@ -52,103 +102,142 @@ export const GoalsSection = () => {
       return;
     }
 
-    const { error } = await supabase
-      .from('goals')
-      .insert([{
+    try {
+      const newGoalData = {
         title: newGoal.title,
         description: newGoal.description,
         subject: newGoal.subject,
+        progress: 0,
         student_id: 'demo-student',
-      }]);
+      };
+      
+      const { error, data } = await supabase
+        .from('goals')
+        .insert([newGoalData])
+        .select();
 
-    if (error) {
+      if (error) {
+        throw error;
+      }
+
+      // If we got the inserted data back with an ID
+      if (data && data.length > 0) {
+        setGoals([data[0], ...goals]);
+      } else {
+        // Otherwise just add it to state with a generated ID
+        setGoals([{ ...newGoalData, id: crypto.randomUUID() }, ...goals]);
+      }
+
+      toast({
+        title: "Goal added successfully",
+        description: "Your new academic goal has been set",
+      });
+
+      setNewGoal({ title: '', description: '', subject: '' });
+    } catch (error: any) {
       toast({
         title: "Error adding goal",
-        description: error.message,
+        description: error.message || "Could not add the goal",
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Goal added successfully",
-      description: "Your new academic goal has been set",
-    });
-
-    setNewGoal({ title: '', description: '', subject: '' });
-    fetchGoals();
   };
 
   const handleDeleteGoal = async (id: string) => {
-    const { error } = await supabase
-      .from('goals')
-      .delete()
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('goals')
+        .delete()
+        .eq('id', id);
 
-    if (error) {
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      setGoals(goals.filter(goal => goal.id !== id));
+
+      toast({
+        title: "Goal deleted",
+        description: "The academic goal has been removed",
+      });
+    } catch (error: any) {
       toast({
         title: "Error deleting goal",
-        description: error.message,
+        description: error.message || "Could not delete the goal",
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Goal deleted",
-      description: "The academic goal has been removed",
-    });
-
-    fetchGoals();
   };
 
   const handleUpdateProgress = async () => {
     if (!selectedGoalId) return;
 
-    const { error } = await supabase
-      .from('goals')
-      .update({ progress: progressValue })
-      .eq('id', selectedGoalId);
+    try {
+      const { error } = await supabase
+        .from('goals')
+        .update({ progress: progressValue })
+        .eq('id', selectedGoalId);
 
-    if (error) {
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      setGoals(goals.map(goal => 
+        goal.id === selectedGoalId ? { ...goal, progress: progressValue } : goal
+      ));
+
+      toast({
+        title: "Progress updated",
+        description: "Goal progress has been updated successfully",
+      });
+
+      setSelectedGoalId(null);
+    } catch (error: any) {
       toast({
         title: "Error updating progress",
-        description: error.message,
+        description: error.message || "Could not update progress",
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Progress updated",
-      description: "Goal progress has been updated successfully",
-    });
-
-    setSelectedGoalId(null);
-    fetchGoals();
   };
 
   const handleManualProgressUpdate = async (goalId: string, newProgress: number) => {
-    const { error } = await supabase
-      .from('goals')
-      .update({ progress: newProgress })
-      .eq('id', goalId);
+    try {
+      // Ensure progress is between 0-100
+      const clampedProgress = Math.min(100, Math.max(0, newProgress));
+      
+      const { error } = await supabase
+        .from('goals')
+        .update({ progress: clampedProgress })
+        .eq('id', goalId);
 
-    if (error) {
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      setGoals(goals.map(goal => 
+        goal.id === goalId ? { ...goal, progress: clampedProgress } : goal
+      ));
+
+      toast({
+        title: "Progress updated",
+        description: "Goal progress has been manually updated",
+      });
+    } catch (error: any) {
       toast({
         title: "Error updating progress",
-        description: error.message,
+        description: error.message || "Could not update progress",
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Progress updated",
-      description: "Goal progress has been manually updated",
-    });
-
-    fetchGoals();
+  };
+  
+  const openProgressDialog = (goalId: string, currentProgress: number = 0) => {
+    setSelectedGoalId(goalId);
+    setProgressValue(currentProgress);
   };
 
   useEffect(() => {
@@ -161,7 +250,7 @@ export const GoalsSection = () => {
         <CardTitle>Academic Goals</CardTitle>
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-700">
+            <Button variant="outline" className="bg-white text-black hover:bg-gray-200 border-white">
               Add New Goal
             </Button>
           </DialogTrigger>
@@ -217,7 +306,7 @@ export const GoalsSection = () => {
                       min="0"
                       max="100"
                       value={goal.progress || 0}
-                      onChange={(e) => handleManualProgressUpdate(goal.id!, parseInt(e.target.value) || 0)}
+                      onChange={(e) => goal.id && handleManualProgressUpdate(goal.id, parseInt(e.target.value) || 0)}
                       className="w-20 bg-slate-900 border-slate-700 text-center"
                     />
                     <span className="ml-2 text-lg font-bold">%</span>
@@ -239,6 +328,14 @@ export const GoalsSection = () => {
               {goal.description && (
                 <p className="mt-2 text-sm text-slate-400">{goal.description}</p>
               )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3 bg-white text-black hover:bg-gray-200 border-white"
+                onClick={() => goal.id && openProgressDialog(goal.id, goal.progress || 0)}
+              >
+                Set Progress Using Slider
+              </Button>
             </div>
           ))}
           {goals.length === 0 && (

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Plus, Search, Trash2, Check, X } from "lucide-react";
+import { Calendar, Plus, Search, Trash2, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { 
   Table,
   TableBody,
@@ -71,7 +71,7 @@ const generateInitialGrades = (): GradeEntry[] => {
   return initialGrades;
 };
 
-// Generate daily attendance records for the current week
+// Generate daily attendance records for three weeks
 const generateInitialAttendance = (): AttendanceRecord[] => {
   const savedAttendance = localStorage.getItem('student_attendance');
   if (savedAttendance) {
@@ -80,25 +80,27 @@ const generateInitialAttendance = (): AttendanceRecord[] => {
   
   const initialAttendance: AttendanceRecord[] = [];
   const today = new Date();
-  const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
   
-  // Generate attendance for Monday through Friday of the current week
-  for (let i = 1; i <= 5; i++) { // 1 = Monday, 5 = Friday
-    const dayDate = new Date();
-    const diff = i - dayOfWeek;
-    dayDate.setDate(today.getDate() + diff);
-    
-    MOCK_STUDENTS.forEach(student => {
-      // For past days, randomly set attendance
-      // For today and future days, default to present
-      const isPastDay = diff < 0;
-      initialAttendance.push({
-        id: crypto.randomUUID(),
-        studentId: student.id,
-        date: format(dayDate, 'yyyy-MM-dd'),
-        isPresent: isPastDay ? Math.random() > 0.2 : true, // 80% chance of being present for past days
+  // Generate 3 weeks of attendance records (current week and 2 previous weeks)
+  for (let weekOffset = -2; weekOffset <= 0; weekOffset++) {
+    for (let i = 1; i <= 5; i++) { // 1 = Monday, 5 = Friday
+      const dayDate = new Date();
+      const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      const diff = i - dayOfWeek + (weekOffset * 7); // Add weeks offset
+      dayDate.setDate(today.getDate() + diff);
+      
+      MOCK_STUDENTS.forEach(student => {
+        // For past days, randomly set attendance
+        // For today and future days, default to present
+        const isPastDay = diff < 0;
+        initialAttendance.push({
+          id: crypto.randomUUID(),
+          studentId: student.id,
+          date: format(dayDate, 'yyyy-MM-dd'),
+          isPresent: isPastDay ? Math.random() > 0.2 : true, // 80% chance of being present for past days
+        });
       });
-    });
+    }
   }
   
   return initialAttendance;
@@ -111,6 +113,28 @@ const getDayName = (dateStr: string): string => {
   return days[date.getDay()];
 };
 
+// Get the start and end dates of a week
+const getWeekStartEnd = (date: Date, weekOffset: number = 0): { start: Date, end: Date } => {
+  const result = new Date(date);
+  const day = result.getDay();
+  
+  // Set to previous Monday (or current if it's already Monday)
+  const diffToStart = day === 0 ? -6 : 1 - day;
+  result.setDate(result.getDate() + diffToStart + (weekOffset * 7));
+  
+  const start = new Date(result);
+  
+  // Set to the Friday of the same week
+  result.setDate(result.getDate() + 4);
+  
+  return { start, end: result };
+};
+
+// Format a week range as a string
+const formatWeekRange = (startDate: Date, endDate: Date): string => {
+  return `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`;
+};
+
 const GradeManagement = () => {
   const [grades, setGrades] = useState<GradeEntry[]>(generateInitialGrades());
   const [assignments, setAssignments] = useState<string[]>(['Assignment 1']);
@@ -118,7 +142,42 @@ const GradeManagement = () => {
   const [filterAssignment, setFilterAssignment] = useState('');
   const [attendance, setAttendance] = useState<AttendanceRecord[]>(generateInitialAttendance());
   const [showAttendance, setShowAttendance] = useState<boolean>(false);
+  const [currentWeekOffset, setCurrentWeekOffset] = useState<number>(0); // 0 = current week, -1 = last week
   const { toast } = useToast();
+
+  // Get current week dates based on the offset
+  const today = new Date();
+  const { start: weekStart, end: weekEnd } = getWeekStartEnd(today, currentWeekOffset);
+  const weekRangeDisplay = formatWeekRange(weekStart, weekEnd);
+
+  // Filter attendance records for the current displayed week
+  const getAttendanceForCurrentWeek = (): AttendanceRecord[] => {
+    const startDate = format(weekStart, 'yyyy-MM-dd');
+    const endDate = format(weekEnd, 'yyyy-MM-dd');
+    
+    return attendance.filter(record => {
+      return record.date >= startDate && record.date <= endDate;
+    });
+  };
+  
+  // Get unique dates for the current displayed week
+  const getAttendanceDatesForCurrentWeek = (): string[] => {
+    const records = getAttendanceForCurrentWeek();
+    return Array.from(new Set(records.map(record => record.date)))
+      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+  };
+
+  // Navigate to previous week
+  const goToPreviousWeek = () => {
+    setCurrentWeekOffset(currentWeekOffset - 1);
+  };
+
+  // Navigate to next week (only if not already at the current week)
+  const goToNextWeek = () => {
+    if (currentWeekOffset < 0) {
+      setCurrentWeekOffset(currentWeekOffset + 1);
+    }
+  };
 
   // Save grades whenever they change
   useEffect(() => {
@@ -231,9 +290,8 @@ const GradeManagement = () => {
   // Get unique list of assignments for filtering
   const uniqueAssignments = Array.from(new Set(grades.map(grade => grade.assignment)));
   
-  // Get unique dates from attendance records and sort them
-  const attendanceDates = Array.from(new Set(attendance.map(record => record.date)))
-    .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+  // Get unique dates from current week attendance records
+  const currentWeekDates = getAttendanceDatesForCurrentWeek();
 
   return (
     <Card className="bg-slate-800 text-white border-slate-700">
@@ -367,79 +425,108 @@ const GradeManagement = () => {
                 </TableBody>
               </Table>
             ) : (
-              // Attendance tracking table with improved visibility
-              <Table className="w-full text-white">
-                <TableHeader className="bg-slate-900">
-                  <TableRow className="border-b border-slate-700">
-                    <TableHead className="text-slate-400">Student</TableHead>
-                    {attendanceDates.map(date => (
-                      <TableHead key={date} className="text-slate-400 text-center">
-                        <div className="flex flex-col items-center">
-                          <span>{getDayName(date)}</span>
-                          <span className="text-xs opacity-75">{format(new Date(date), 'MM/dd/yyyy')}</span>
-                        </div>
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {MOCK_STUDENTS.filter(student => 
-                    student.name.toLowerCase().includes(searchTerm.toLowerCase())
-                  ).map(student => (
-                    <TableRow key={student.id} className="border-b border-slate-700">
-                      <TableCell className="py-3 font-medium">{student.name}</TableCell>
-                      {attendanceDates.map(date => {
-                        const record = attendance.find(
-                          r => r.studentId === student.id && r.date === date
-                        );
-                        const isPresent = record ? record.isPresent : false;
-                        
-                        return (
-                          <TableCell key={`${student.id}-${date}`} className="py-3 text-center">
-                            <div className="flex justify-center">
-                              <div className="flex space-x-2">
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant={isPresent ? "default" : "outline"}
-                                  className={isPresent 
-                                    ? "bg-green-600 hover:bg-green-700 h-9 px-3 text-white" 
-                                    : "bg-white text-black hover:bg-gray-200 h-9 px-3 border-white"}
-                                  onClick={() => record && !isPresent && toggleAttendance(student.id, date)}
-                                >
-                                  <Check className="h-4 w-4 mr-1" />
-                                  Present
-                                </Button>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant={!isPresent ? "default" : "outline"}
-                                  className={!isPresent 
-                                    ? "bg-red-600 hover:bg-red-700 h-9 px-3 text-white" 
-                                    : "bg-white text-black hover:bg-gray-200 h-9 px-3 border-white"}
-                                  onClick={() => record && isPresent && toggleAttendance(student.id, date)}
-                                >
-                                  <X className="h-4 w-4 mr-1" />
-                                  Absent
-                                </Button>
+              // Attendance tracking table with improved visibility and week navigation
+              <div>
+                <div className="flex items-center justify-between pb-4">
+                  <h3 className="text-lg font-semibold">Attendance Record</h3>
+                  <div className="flex items-center space-x-4">
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      onClick={goToPreviousWeek}
+                      className="bg-white text-black hover:bg-gray-200 border-white"
+                    >
+                      <ChevronLeft size={16} />
+                      <span className="ml-1">Previous Week</span>
+                    </Button>
+                    <span className="font-medium px-2">{weekRangeDisplay}</span>
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      onClick={goToNextWeek}
+                      disabled={currentWeekOffset === 0}
+                      className={currentWeekOffset === 0 
+                        ? "opacity-50 cursor-not-allowed border-slate-600" 
+                        : "bg-white text-black hover:bg-gray-200 border-white"}
+                    >
+                      <span className="mr-1">Next Week</span>
+                      <ChevronRight size={16} />
+                    </Button>
+                  </div>
+                </div>
+                <Table className="w-full text-white">
+                  <TableHeader className="bg-slate-900">
+                    <TableRow className="border-b border-slate-700">
+                      <TableHead className="text-slate-400">Student</TableHead>
+                      {currentWeekDates.map(date => (
+                        <TableHead key={date} className="text-slate-400 text-center">
+                          <div className="flex flex-col items-center">
+                            <span>{getDayName(date)}</span>
+                            <span className="text-xs opacity-75">{format(new Date(date), 'MM/dd/yyyy')}</span>
+                          </div>
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {MOCK_STUDENTS.filter(student => 
+                      student.name.toLowerCase().includes(searchTerm.toLowerCase())
+                    ).map(student => (
+                      <TableRow key={student.id} className="border-b border-slate-700">
+                        <TableCell className="py-3 font-medium">{student.name}</TableCell>
+                        {currentWeekDates.map(date => {
+                          const record = attendance.find(
+                            r => r.studentId === student.id && r.date === date
+                          );
+                          const isPresent = record ? record.isPresent : false;
+                          
+                          return (
+                            <TableCell key={`${student.id}-${date}`} className="py-3 text-center">
+                              <div className="flex justify-center">
+                                <div className="flex space-x-2">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={isPresent ? "default" : "outline"}
+                                    className={isPresent 
+                                      ? "bg-green-600 hover:bg-green-700 h-9 px-3 text-white" 
+                                      : "bg-white text-black hover:bg-gray-200 h-9 px-3 border-white"}
+                                    onClick={() => record && !isPresent && toggleAttendance(student.id, date)}
+                                  >
+                                    <Check className="h-4 w-4 mr-1" />
+                                    Present
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={!isPresent ? "default" : "outline"}
+                                    className={!isPresent 
+                                      ? "bg-red-600 hover:bg-red-700 h-9 px-3 text-white" 
+                                      : "bg-white text-black hover:bg-gray-200 h-9 px-3 border-white"}
+                                    onClick={() => record && isPresent && toggleAttendance(student.id, date)}
+                                  >
+                                    <X className="h-4 w-4 mr-1" />
+                                    Absent
+                                  </Button>
+                                </div>
                               </div>
-                            </div>
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-                  {MOCK_STUDENTS.filter(student => 
-                    student.name.toLowerCase().includes(searchTerm.toLowerCase())
-                  ).length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={attendanceDates.length + 1} className="text-center py-6 text-slate-400">
-                        No students found. Try adjusting your search.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                    {MOCK_STUDENTS.filter(student => 
+                      student.name.toLowerCase().includes(searchTerm.toLowerCase())
+                    ).length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={currentWeekDates.length + 1} className="text-center py-6 text-slate-400">
+                          No students found. Try adjusting your search.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </div>
         </div>

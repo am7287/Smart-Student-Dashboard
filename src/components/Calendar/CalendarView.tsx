@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -8,6 +7,50 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+
+// Sample mock assignments to populate the calendar
+const MOCK_ASSIGNMENTS = [
+  {
+    id: '1',
+    title: 'Math Quiz - Algebra',
+    description: 'Covering chapters 5-7 on polynomial expressions',
+    date: new Date(new Date().setDate(new Date().getDate() + 3)).toISOString(),
+    type: 'exam',
+    assigned_by: 'Mrs. Johnson',
+  },
+  {
+    id: '2',
+    title: 'History Essay',
+    description: 'Write a 1000-word essay on the Industrial Revolution',
+    date: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString(),
+    type: 'assignment',
+    assigned_by: 'Mr. Smith',
+  },
+  {
+    id: '3',
+    title: 'Science Project Deadline',
+    description: 'Final submission of the ecosystem model',
+    date: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString(),
+    type: 'deadline',
+    assigned_by: 'Dr. Williams',
+  },
+  {
+    id: '4',
+    title: 'Literature Analysis',
+    description: 'Character study for "To Kill a Mockingbird"',
+    date: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(),
+    type: 'assignment',
+    assigned_by: 'Ms. Davis',
+  },
+  {
+    id: '5',
+    title: 'Mid-term Exams',
+    description: 'All subjects - review study guides',
+    date: new Date(new Date().setDate(new Date().getDate() + 14)).toISOString(),
+    type: 'exam',
+    assigned_by: 'School Administration',
+  },
+];
 
 const CalendarView = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -21,20 +64,42 @@ const CalendarView = () => {
   const { toast } = useToast();
 
   const fetchEvents = async () => {
-    const { data, error } = await supabase
-      .from('calendar_events')
-      .select('*');
-    
-    if (error) {
+    try {
+      const { data, error } = await supabase
+        .from('calendar_events')
+        .select('*');
+      
+      if (error) {
+        throw error;
+      }
+
+      // If we got data from Supabase, use it
+      if (data && data.length > 0) {
+        setEvents(data);
+      } else {
+        // Otherwise use our mock data
+        setEvents(MOCK_ASSIGNMENTS);
+        
+        // Also insert mock data into Supabase for future use
+        const { error: insertError } = await supabase
+          .from('calendar_events')
+          .insert(MOCK_ASSIGNMENTS);
+        
+        if (insertError) {
+          console.error('Could not insert mock data:', insertError);
+        }
+      }
+    } catch (error: any) {
+      console.error('Error fetching events:', error);
+      // Fall back to mock data if there's any error with Supabase
+      setEvents(MOCK_ASSIGNMENTS);
+      
       toast({
-        title: "Error fetching events",
-        description: error.message,
+        title: "Error connecting to database",
+        description: "Using sample data instead",
         variant: "destructive",
       });
-      return;
     }
-
-    setEvents(data || []);
   };
 
   useEffect(() => {
@@ -63,32 +128,43 @@ const CalendarView = () => {
       return;
     }
 
-    const { error } = await supabase
-      .from('calendar_events')
-      .insert([{
+    try {
+      const newEventData = {
         title: newEvent.title,
         description: newEvent.description,
         date: date.toISOString(),
         type: newEvent.type,
         assigned_by: 'Teacher', // This would come from auth user in production
-      }]);
+      };
 
-    if (error) {
+      const { error } = await supabase
+        .from('calendar_events')
+        .insert([newEventData]);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      setEvents([...events, { ...newEventData, id: crypto.randomUUID() }]);
+      
+      if (date && new Date(newEventData.date).toDateString() === date.toDateString()) {
+        setSelectedDateEvents([...selectedDateEvents, newEventData]);
+      }
+
+      toast({
+        title: "Event added successfully",
+        description: "The new event has been created",
+      });
+
+      setNewEvent({ title: '', description: '', type: 'assignment' });
+    } catch (error: any) {
       toast({
         title: "Error adding event",
-        description: error.message,
+        description: error.message || "Could not add the event",
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Event added successfully",
-      description: "The new event has been created",
-    });
-
-    setNewEvent({ title: '', description: '', type: 'assignment' });
-    fetchEvents();
   };
 
   const getEventTypeStyle = (type: string) => {
@@ -116,7 +192,7 @@ const CalendarView = () => {
               mode="single"
               selected={date}
               onSelect={handleDateSelect}
-              className="bg-slate-800 text-white rounded-md"
+              className="bg-slate-800 text-white rounded-md pointer-events-auto"
             />
           </div>
           <div className="md:col-span-2">
@@ -154,6 +230,18 @@ const CalendarView = () => {
                         className="bg-slate-900 border-slate-700 text-white"
                       />
                     </div>
+                    <div>
+                      <label className="text-sm text-slate-400">Type</label>
+                      <select
+                        value={newEvent.type}
+                        onChange={(e) => setNewEvent({ ...newEvent, type: e.target.value })}
+                        className="w-full h-10 px-3 py-2 bg-slate-900 border-slate-700 rounded-md text-white mt-1"
+                      >
+                        <option value="assignment">Assignment</option>
+                        <option value="exam">Exam</option>
+                        <option value="deadline">Deadline</option>
+                      </select>
+                    </div>
                     <Button onClick={handleAddEvent} className="w-full">
                       Add Event
                     </Button>
@@ -177,6 +265,9 @@ const CalendarView = () => {
                     </div>
                     {event.description && (
                       <p className="mt-2 text-sm text-slate-400">{event.description}</p>
+                    )}
+                    {event.assigned_by && (
+                      <p className="mt-1 text-xs text-slate-500">By: {event.assigned_by}</p>
                     )}
                   </div>
                 ))}
