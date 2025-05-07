@@ -136,6 +136,30 @@ const formatWeekRange = (startDate: Date, endDate: Date): string => {
   return `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`;
 };
 
+// Calculate attendance statistics for a student during a specific week
+const getStudentWeeklyAttendanceSummary = (
+  attendance: AttendanceRecord[], 
+  studentId: number, 
+  startDate: Date, 
+  endDate: Date
+): { present: number, absent: number } => {
+  const startDateStr = format(startDate, 'yyyy-MM-dd');
+  const endDateStr = format(endDate, 'yyyy-MM-dd');
+  
+  // Filter attendance records for this student and week
+  const studentWeekRecords = attendance.filter(record => 
+    record.studentId === studentId && 
+    record.date >= startDateStr && 
+    record.date <= endDateStr
+  );
+  
+  // Count present and absent days
+  const present = studentWeekRecords.filter(record => record.isPresent).length;
+  const absent = studentWeekRecords.length - present;
+  
+  return { present, absent };
+};
+
 const GradeManagement = () => {
   const [grades, setGrades] = useState<GradeEntry[]>(generateInitialGrades());
   const [assignments, setAssignments] = useState<string[]>(['Assignment 1']);
@@ -467,60 +491,78 @@ const GradeManagement = () => {
                           </div>
                         </TableHead>
                       ))}
+                      <TableHead className="text-slate-400 text-right">Summary</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {MOCK_STUDENTS.filter(student => 
                       student.name.toLowerCase().includes(searchTerm.toLowerCase())
-                    ).map(student => (
-                      <TableRow key={student.id} className="border-b border-slate-700">
-                        <TableCell className="py-3 font-medium">{student.name}</TableCell>
-                        {currentWeekDates.map(date => {
-                          const record = attendance.find(
-                            r => r.studentId === student.id && r.date === date
-                          );
-                          const isPresent = record ? record.isPresent : false;
-                          
-                          return (
-                            <TableCell key={`${student.id}-${date}`} className="py-3 text-center">
-                              <div className="flex justify-center">
-                                <div className="flex space-x-2">
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant={isPresent ? "default" : "outline"}
-                                    className={isPresent 
-                                      ? "bg-green-600 hover:bg-green-700 h-9 px-3 text-white" 
-                                      : "bg-white text-black hover:bg-gray-200 h-9 px-3 border-white"}
-                                    onClick={() => record && !isPresent && toggleAttendance(student.id, date)}
-                                  >
-                                    <Check className="h-4 w-4 mr-1" />
-                                    Present
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant={!isPresent ? "default" : "outline"}
-                                    className={!isPresent 
-                                      ? "bg-red-600 hover:bg-red-700 h-9 px-3 text-white" 
-                                      : "bg-white text-black hover:bg-gray-200 h-9 px-3 border-white"}
-                                    onClick={() => record && isPresent && toggleAttendance(student.id, date)}
-                                  >
-                                    <X className="h-4 w-4 mr-1" />
-                                    Absent
-                                  </Button>
+                    ).map(student => {
+                      // Calculate attendance summary for this student for the current week
+                      const summary = getStudentWeeklyAttendanceSummary(
+                        attendance, student.id, weekStart, weekEnd
+                      );
+                      
+                      return (
+                        <TableRow key={student.id} className="border-b border-slate-700">
+                          <TableCell className="py-3 font-medium">{student.name}</TableCell>
+                          {currentWeekDates.map(date => {
+                            const record = attendance.find(
+                              r => r.studentId === student.id && r.date === date
+                            );
+                            const isPresent = record ? record.isPresent : false;
+                            
+                            return (
+                              <TableCell key={`${student.id}-${date}`} className="py-3 text-center">
+                                <div className="flex justify-center">
+                                  <div className="flex space-x-2">
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant={isPresent ? "default" : "outline"}
+                                      className={isPresent 
+                                        ? "bg-green-600 hover:bg-green-700 h-9 px-3 text-white" 
+                                        : "bg-white text-black hover:bg-gray-200 h-9 px-3 border-white"}
+                                      onClick={() => record && !isPresent && toggleAttendance(student.id, date)}
+                                    >
+                                      <Check className="h-4 w-4 mr-1" />
+                                      Present
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant={!isPresent ? "default" : "outline"}
+                                      className={!isPresent 
+                                        ? "bg-red-600 hover:bg-red-700 h-9 px-3 text-white" 
+                                        : "bg-white text-black hover:bg-gray-200 h-9 px-3 border-white"}
+                                      onClick={() => record && isPresent && toggleAttendance(student.id, date)}
+                                    >
+                                      <X className="h-4 w-4 mr-1" />
+                                      Absent
+                                    </Button>
+                                  </div>
                                 </div>
-                              </div>
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
-                    ))}
+                              </TableCell>
+                            );
+                          })}
+                          <TableCell className="py-3 text-right">
+                            <div className="flex justify-end items-center">
+                              <span className="bg-green-600 text-white text-xs font-medium px-2 py-1 rounded-l">
+                                Present: {summary.present}
+                              </span>
+                              <span className="bg-red-600 text-white text-xs font-medium px-2 py-1 rounded-r">
+                                Absent: {summary.absent}
+                              </span>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                     {MOCK_STUDENTS.filter(student => 
                       student.name.toLowerCase().includes(searchTerm.toLowerCase())
                     ).length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={currentWeekDates.length + 1} className="text-center py-6 text-slate-400">
+                        <TableCell colSpan={currentWeekDates.length + 2} className="text-center py-6 text-slate-400">
                           No students found. Try adjusting your search.
                         </TableCell>
                       </TableRow>
