@@ -11,7 +11,7 @@ const TeacherDashboard = () => {
       <MainLayout>
         <div className="space-y-8">
           <DashboardHeader 
-            title="Smart Student Dashboard" 
+            title="Dashboard" 
             subtitle="Monitor student performance and progress"
           />
           
