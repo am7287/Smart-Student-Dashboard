@@ -6,7 +6,7 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4">
       <div className="w-full max-w-md">
-        <h1 className="text-3xl font-bold text-white text-center mb-8">Student Tracker</h1>
+        <h1 className="text-3xl font-bold text-white text-center mb-8">Smart Student Dashboard</h1>
         <LoginForm />
         <div className="mt-6 text-center">
           <p className="text-slate-400 text-sm">

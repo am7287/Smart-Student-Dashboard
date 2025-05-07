@@ -90,14 +90,20 @@ const generateInitialAttendance = (): AttendanceRecord[] => {
       dayDate.setDate(today.getDate() + diff);
       
       MOCK_STUDENTS.forEach(student => {
-        // For past days, randomly set attendance
-        // For today and future days, default to present
-        const isPastDay = diff < 0;
+        // For all days in previous weeks, set random attendance (80% present)
+        // For all students, ensure we have at least one absence in the previous weeks
+        // to make the data more realistic
+        const isPastDay = weekOffset < 0 || (weekOffset === 0 && diff < 0);
+        const forcedAbsence = isPastDay && 
+          weekOffset === -1 && 
+          i === 3 && 
+          (student.id % 3 === 0); // Make every third student absent on Wednesday of last week
+        
         initialAttendance.push({
           id: crypto.randomUUID(),
           studentId: student.id,
           date: format(dayDate, 'yyyy-MM-dd'),
-          isPresent: isPastDay ? Math.random() > 0.2 : true, // 80% chance of being present for past days
+          isPresent: forcedAbsence ? false : (isPastDay ? Math.random() > 0.2 : true), // 80% chance of being present for past days
         });
       });
     }
