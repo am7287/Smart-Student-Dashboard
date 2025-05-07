@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,9 +12,6 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 
 // Define a type for the student
@@ -255,7 +251,7 @@ const GradeManagement = () => {
             <Button 
               onClick={() => setShowAttendance(!showAttendance)}
               variant="outline"
-              className="border-slate-600 text-white hover:bg-slate-700"
+              className="bg-white text-black hover:bg-gray-200 border-white"
             >
               <Calendar className="mr-2 h-4 w-4" />
               {showAttendance ? 'Show Grades' : 'Show Attendance'}
@@ -371,7 +367,7 @@ const GradeManagement = () => {
                 </TableBody>
               </Table>
             ) : (
-              // Attendance tracking table
+              // Attendance tracking table with improved visibility
               <Table className="w-full text-white">
                 <TableHeader className="bg-slate-900">
                   <TableRow className="border-b border-slate-700">
@@ -407,8 +403,8 @@ const GradeManagement = () => {
                                   size="sm"
                                   variant={isPresent ? "default" : "outline"}
                                   className={isPresent 
-                                    ? "bg-green-600 hover:bg-green-700 h-9 px-3" 
-                                    : "border-slate-600 text-white hover:bg-slate-700 h-9 px-3"}
+                                    ? "bg-green-600 hover:bg-green-700 h-9 px-3 text-white" 
+                                    : "bg-white text-black hover:bg-gray-200 h-9 px-3 border-white"}
                                   onClick={() => record && !isPresent && toggleAttendance(student.id, date)}
                                 >
                                   <Check className="h-4 w-4 mr-1" />
@@ -419,8 +415,8 @@ const GradeManagement = () => {
                                   size="sm"
                                   variant={!isPresent ? "default" : "outline"}
                                   className={!isPresent 
-                                    ? "bg-red-600 hover:bg-red-700 h-9 px-3" 
-                                    : "border-slate-600 text-white hover:bg-slate-700 h-9 px-3"}
+                                    ? "bg-red-600 hover:bg-red-700 h-9 px-3 text-white" 
+                                    : "bg-white text-black hover:bg-gray-200 h-9 px-3 border-white"}
                                   onClick={() => record && isPresent && toggleAttendance(student.id, date)}
                                 >
                                   <X className="h-4 w-4 mr-1" />

@@ -99,7 +99,7 @@ const StudentProgressCard = ({ student }: StudentProgressCardProps) => {
               }}
               variant="outline"
               size="sm"
-              className="text-white hover:text-purple-400 border-slate-600 hover:border-purple-500"
+              className="bg-white text-black hover:bg-gray-200 border-white"
             >
               <Download size={16} className="mr-2" />
               Download Report
