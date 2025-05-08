@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -7,6 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Trash2 } from 'lucide-react';
+import { 
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 
 // Sample mock assignments to populate the calendar
 const MOCK_ASSIGNMENTS = [
@@ -167,6 +175,39 @@ const CalendarView = () => {
     }
   };
 
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      const { error } = await supabase
+        .from('calendar_events')
+        .delete()
+        .eq('id', eventId);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      const updatedEvents = events.filter(event => event.id !== eventId);
+      setEvents(updatedEvents);
+      
+      if (date) {
+        const updatedDateEvents = selectedDateEvents.filter(event => event.id !== eventId);
+        setSelectedDateEvents(updatedDateEvents);
+      }
+
+      toast({
+        title: "Event removed successfully",
+        description: "The event has been deleted",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error removing event",
+        description: error.message || "Could not delete the event",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getEventTypeStyle = (type: string) => {
     switch (type) {
       case 'assignment':
@@ -253,23 +294,46 @@ const CalendarView = () => {
             {selectedDateEvents.length > 0 ? (
               <div className="space-y-3">
                 {selectedDateEvents.map((event, index) => (
-                  <div 
-                    key={index}
-                    className={`p-3 rounded-md border ${getEventTypeStyle(event.type)}`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <h4 className="font-medium">{event.title}</h4>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/50">
-                        {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
-                      </span>
-                    </div>
-                    {event.description && (
-                      <p className="mt-2 text-sm text-slate-400">{event.description}</p>
-                    )}
-                    {event.assigned_by && (
-                      <p className="mt-1 text-xs text-slate-500">By: {event.assigned_by}</p>
-                    )}
-                  </div>
+                  <ContextMenu key={event.id || index}>
+                    <ContextMenuTrigger>
+                      <div 
+                        className={`p-3 rounded-md border ${getEventTypeStyle(event.type)} relative group`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-medium">{event.title}</h4>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/50">
+                            {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
+                          </span>
+                        </div>
+                        {event.description && (
+                          <p className="mt-2 text-sm text-slate-400">{event.description}</p>
+                        )}
+                        {event.assigned_by && (
+                          <p className="mt-1 text-xs text-slate-500">By: {event.assigned_by}</p>
+                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteEvent(event.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-400" />
+                        </Button>
+                      </div>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent className="bg-slate-800 border-slate-700 text-white">
+                      <ContextMenuItem 
+                        className="text-red-400 focus:text-red-400 focus:bg-slate-700"
+                        onClick={() => handleDeleteEvent(event.id)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Event
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
                 ))}
               </div>
             ) : (
