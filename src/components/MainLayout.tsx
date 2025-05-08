@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { BarChart3, GraduationCap, Users, Settings, Calendar, User } from 'lucide-react';
@@ -59,7 +60,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         <Sidebar>
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel>Student Tracker</SidebarGroupLabel>
+              <SidebarGroupLabel>Smart Student Dashboard</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {navigationItems.map((item) => (
