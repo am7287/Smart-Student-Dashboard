@@ -1,3 +1,4 @@
+
 import React from 'react';
 import MainLayout from '../components/MainLayout';
 import DashboardHeader from '../components/Dashboard/DashboardHeader';
@@ -26,6 +27,10 @@ const mockStudents = [
         due: "Next Week",
         status: "pending"
       }
+    ],
+    suggestions: [
+      "Practice more complex algebra problems to improve math scores",
+      "Review physics concepts regularly to strengthen fundamentals"
     ]
   },
   {
@@ -43,6 +48,10 @@ const mockStudents = [
         due: "Friday",
         status: "pending"
       }
+    ],
+    suggestions: [
+      "Join the physics study group to improve understanding",
+      "Set aside time for daily practice problems in physics"
     ]
   },
   {
@@ -60,6 +69,10 @@ const mockStudents = [
         due: "Wednesday",
         status: "pending"
       }
+    ],
+    suggestions: [
+      "Consider advanced math challenges to maintain engagement",
+      "Explore physics competitions to apply theoretical knowledge"
     ]
   },
   {
@@ -77,6 +90,10 @@ const mockStudents = [
         due: "Friday",
         status: "pending"
       }
+    ],
+    suggestions: [
+      "Attend math tutoring sessions to improve foundational skills",
+      "Create a structured study plan for mathematics"
     ]
   },
   {
@@ -94,6 +111,10 @@ const mockStudents = [
         due: "Next Tuesday",
         status: "completed"
       }
+    ],
+    suggestions: [
+      "Explore research opportunities in mathematics or physics",
+      "Consider mentoring other students to deepen understanding"
     ]
   },
   {
@@ -111,6 +132,10 @@ const mockStudents = [
         due: "Tomorrow",
         status: "pending"
       }
+    ],
+    suggestions: [
+      "Schedule regular physics tutoring to address knowledge gaps",
+      "Use interactive learning tools to improve physics understanding"
     ]
   }
 ];

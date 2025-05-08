@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
 
 interface StudentDetailsCardProps {
   student: {
@@ -20,6 +20,7 @@ interface StudentDetailsCardProps {
       due: string;
       status: string;
     }>;
+    suggestions?: string[];
   };
 }
 
@@ -88,6 +89,25 @@ const StudentDetailsCard = ({ student }: StudentDetailsCardProps) => {
                 ))}
               </div>
             </div>
+            
+            {student.suggestions && student.suggestions.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium mb-4 text-slate-400">Improvement Suggestions</h4>
+                <div className="space-y-2">
+                  {student.suggestions.map((suggestion, index) => (
+                    <div 
+                      key={index}
+                      className="p-3 rounded-md border border-amber-500/30 bg-amber-500/10"
+                    >
+                      <div className="flex items-start gap-2">
+                        <Lightbulb className="h-4 w-4 text-amber-400 mt-0.5 flex-shrink-0" />
+                        <p className="text-sm">{suggestion}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
