@@ -174,12 +174,18 @@ export const GoalsSection = () => {
     if (!selectedGoalId) return;
 
     try {
+      console.log('Updating goal via slider:', selectedGoalId, 'to progress:', progressValue);
+      
       const { error } = await supabase
         .from('goals')
-        .update({ progress: progressValue })
+        .update({ 
+          progress: progressValue,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', selectedGoalId);
 
       if (error) {
+        console.error('Database error:', error);
         throw error;
       }
 
@@ -195,9 +201,10 @@ export const GoalsSection = () => {
 
       setSelectedGoalId(null);
     } catch (error: any) {
+      console.error('Full error details:', error);
       toast({
         title: "Error updating progress",
-        description: error.message || "Could not update progress",
+        description: `Database error: ${error.message}` || "Could not update progress",
         variant: "destructive",
       });
     }
@@ -208,12 +215,18 @@ export const GoalsSection = () => {
       // Ensure progress is between 0-100
       const clampedProgress = Math.min(100, Math.max(0, newProgress));
       
+      console.log('Updating goal:', goalId, 'to progress:', clampedProgress);
+      
       const { error } = await supabase
         .from('goals')
-        .update({ progress: clampedProgress })
+        .update({ 
+          progress: clampedProgress,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', goalId);
 
       if (error) {
+        console.error('Database error:', error);
         throw error;
       }
 
@@ -227,9 +240,10 @@ export const GoalsSection = () => {
         description: "Goal progress has been manually updated",
       });
     } catch (error: any) {
+      console.error('Full error details:', error);
       toast({
         title: "Error updating progress",
-        description: error.message || "Could not update progress",
+        description: `Database error: ${error.message}` || "Could not update progress",
         variant: "destructive",
       });
     }

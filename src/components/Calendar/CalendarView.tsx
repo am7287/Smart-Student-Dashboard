@@ -87,24 +87,29 @@ const CalendarView = () => {
       const newEventData = {
         title: newEvent.title,
         description: newEvent.description,
-        date: date.toISOString(),
+        date: date.toISOString().split('T')[0], // Ensure we use just the date part
         type: newEvent.type,
         assigned_by: 'Teacher', // This would come from auth user in production
       };
 
-      const { error } = await supabase
+      console.log('Adding event:', newEventData);
+
+      const { error, data } = await supabase
         .from('calendar_events')
-        .insert([newEventData]);
+        .insert([newEventData])
+        .select();
 
       if (error) {
+        console.error('Database error:', error);
         throw error;
       }
 
-      // Update local state
-      setEvents([...events, { ...newEventData, id: crypto.randomUUID() }]);
+      // Update local state with returned data or fallback
+      const eventToAdd = (data && data.length > 0) ? data[0] : { ...newEventData, id: crypto.randomUUID() };
+      setEvents([...events, eventToAdd]);
       
       if (date && new Date(newEventData.date).toDateString() === date.toDateString()) {
-        setSelectedDateEvents([...selectedDateEvents, newEventData]);
+        setSelectedDateEvents([...selectedDateEvents, eventToAdd]);
       }
 
       toast({
@@ -114,9 +119,10 @@ const CalendarView = () => {
 
       setNewEvent({ title: '', description: '', type: 'assignment' });
     } catch (error: any) {
+      console.error('Full error details:', error);
       toast({
         title: "Error adding event",
-        description: error.message || "Could not add the event",
+        description: `Database error: ${error.message}` || "Could not add the event",
         variant: "destructive",
       });
     }
@@ -124,12 +130,15 @@ const CalendarView = () => {
 
   const handleDeleteEvent = async (eventId: string) => {
     try {
+      console.log('Deleting event:', eventId);
+      
       const { error } = await supabase
         .from('calendar_events')
         .delete()
         .eq('id', eventId);
 
       if (error) {
+        console.error('Database error:', error);
         throw error;
       }
 
@@ -147,9 +156,10 @@ const CalendarView = () => {
         description: "The event has been deleted",
       });
     } catch (error: any) {
+      console.error('Full error details:', error);
       toast({
         title: "Error removing event",
-        description: error.message || "Could not delete the event",
+        description: `Database error: ${error.message}` || "Could not delete the event",
         variant: "destructive",
       });
     }
